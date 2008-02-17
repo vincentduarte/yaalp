@@ -1,4 +1,5 @@
-def strz(*args): return ''.join(map(str,args))
+
+
 class Environment:
 	lastpitch = 60
 	lastduration = 64
@@ -154,6 +155,7 @@ class Sequence:
 	name = ''
 	tracks = []
 
+def strz(*args): return ''.join(map(str,args))
 
 def _testParsing():
 	class Bag:
@@ -194,9 +196,8 @@ if __name__ == '__main__':
 	assert getNoteName(102)=='f#7'
 	assert getNoteName(39)=='d#2'
 	
-	#~ assert getNoteName(58)=='c4'
-	print map(getNoteName, [58,48,62,60,62,67,74])
-	#~ env = Environment()
-	#~ n = CreateNote('b-4', env)
-	#~ print n
+	env = Environment()
+	n = CreateNote('b-4', env)
+	print n
+	
 	
