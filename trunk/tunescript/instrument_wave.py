@@ -7,9 +7,10 @@ import yalpsequence
 
 class Wave_bank(Tunescript_bank):
 	def __init__(self):
-		cachedAudio = {}
-		cachedAudioPitches = {}
+		cachedAudio = {} #Rendered audio samples
+		cachedAudioOriginals = {} #The basis pitch and content of the original wave
 		cachedAudioBitrates = {}
+		
 	
 	def playSequence(self,seq):
 		# First, make sure we have all of the notes in the sequence:
@@ -26,7 +27,6 @@ class Wave_bank(Tunescript_bank):
 		del audiodata.samples
 		del audiodata
 		print 'Saved to',filename
-
 
 	def buildWave(self, seq):
 		assert seq.instrument[0]=='wave'
@@ -48,26 +48,30 @@ class Wave_bank(Tunescript_bank):
 			if note.pitch == 1: #This represents a rest
 				seqaudiodata.add_silence(tunescript_bank.scaleTime(note.duration))
 			else:
-				if (strInstrumentPath, note.pitch) not in cachedAudio: # If there's a note we don't have, we'll have to cache it.
-					self.cacheNote(strInstrumentPath, note.pitch)
-				noteSample = cachedAudio[(strInstrument, note.pitch)]
+				if (strInstrumentPath, note.pitch) in self.cachedAudio:
+					noteSample = self.cachedAudio[(strInstrumentPath, note.pitch)]
+				else:
+					noteSample = self.renderNote(strInstrumentPath, note.pitch)
+					self.cachedAudio[(strInstrumentPath, note.pitch)] = noteSample
 				
-				tunescript_bank.add_at_length( seqaudiodata.samples, noteSample.samples, int(tunescript_bank.scaleTime(note.duration) * seqaudiodata.nSampleRate))
+				tunescript_bank.add_at_length(seqaudiodata.samples, noteSample.samples, int(tunescript_bank.scaleTime(note.duration) * seqaudiodata.nSampleRate))
 		return seqaudiodata
 		
-	def cacheNote(self, strInstrument, n):
-		if (strInstrument, n) in cachedAudio:
-			return
-		print 'Caching',n, '...'
+	def renderNote(self, strInstrumentPath, n):
+		# Render a note at a certain pitch
+		print 'Rendering',n, '...'
 		
-		nBase, strFilename, audioFundamental = waveTable[strInstrument][0:3]
-		if audioFundamental==None:
-			# Get the 'fundamental'
-			print 'Getting fundamental...'
-			waveTable[strInstrument][2] = WaveFile('.\\bank\\'+strFilename)
-			audioFundamental = waveTable[strInstrument][2]
-			cachedAudio[(strInstrument, nBase)] = audioFundamental
-			if n==nBase: return
+		# Get the original pitch and data for fundamental note of the sound.
+		if strInstrumentPath in self.cachedAudioOriginals:
+			audioFundamental, audiodata = self.cachedAudioOriginals[strInstrumentPath]
+		else:
+			audioFundamental, audiodata = self.determineAudioFundamental(strInstrumentPath)
+			self.cachedAudioOriginals[strInstrumentPath] = audioFundamental, audiodata
+			self.cachedAudio[(strInstrumentPath, audioFundamental)] = audiodata
+			
+			# We were lucky - the user asked for the fundamental, so we don't need to do anything
+			if n==audioFundamental: return audiodata
+
 		
 		# Scale the 'fundamental:
 		currentFreq = tunescript_bank.midiToFrequency(nBase)
@@ -78,9 +82,36 @@ class Wave_bank(Tunescript_bank):
 		newaudio = audioFundamental.empty_copy()
 		newaudio.samples = (audioFundamental.samples).__deepcopy__()
 		audio_effects.fx_change_pitch(newaudio, desiredFreq/currentFreq)
+		return newaudio
 		
-		cachedAudio[(strInstrument, n)] = newaudio
 
+	def determineAudioFundamental(self, strInstrumentPath):
+		# First, get the audio data
+		audiodata = WaveFile(strInstrumentPath)
+		
+		def getFundamental(strInstrumentPath):
+			import os
+			# Now, get the fundamental.
+			filepath, filename = os.path.split(strInstrumentPath)
+			filename = '.'.join(filename.split('.')[:-1]) #strip extension
+			note = filename.split('_')[-1]
+			try:
+				n = int(note)
+			except:
+				n = None
+			
+			# If a number, use that
+			if n != None: return n
+			
+			# If not a number, try to parse as name
+			n = tunescript_bank.nameToPitch(note)
+			if n != None: return n
+			
+			return None
+		n = getFundamental(strInstrumentPath)
+		if n==None: n = 60 #default to middle C
+		return n, audiodata
+		
 	
 	def queryVoice(self, strInstname):
 		if strInstname=='': return None
@@ -103,4 +134,5 @@ class Wave_bank(Tunescript_bank):
 				results.append(filename_path)
 		return results
 
-
+		
+		

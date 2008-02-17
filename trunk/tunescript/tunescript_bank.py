@@ -46,6 +46,23 @@ def pitchToName(nPitch):
 	map = {0:'C',1:'C#',2:'D',3:'D#',4:'E',5:'F',6:'F#',7:'G',8:'G#',9:'A',10:'A#',11:'B'}
 	return (map[nNote], nOctave)
 
+def nameToPitch(s):
+	# a very simple way to do this. Use Yalpsequence for the real way. C4 -> 60
+	s = s.upper()
+	map = {'C':0,'C#':1,'DB':1,'D':2,'D#':3,'EB':3,'E':4,'F':5,'F#':6,'GB':6,'G':7,'G#':8,'AB':8,'A':9,'A#':10,'BB':10,'B':11}
+	c1 = s[0]
+	c2 = s[0:2]
+	if c2 in map:
+		note = map[c2]
+		octave = int(s[2:]) + 1
+		return octave*12 + note
+	elif c1 in map:
+		note = map[c1]
+		octave = int(s[1:]) + 1
+		return octave*12 + note
+	else:
+		return None
+
 def scaleTime(n):
 	""" Turn MIDI time into seconds"""
 	return float(n) / 128. #A half note is one second long
@@ -65,7 +82,7 @@ if __name__=='__main__':
 	test = Tunescript_bank()
 	test.user_queryVoice('a')
 	
-	a = [1,2,3]
-	b = [4,5,6]
-	a.extend(b)
-	print a
+	print nameToPitch('C4')
+	print nameToPitch('C#4')
+	print nameToPitch('Db4')
+	
