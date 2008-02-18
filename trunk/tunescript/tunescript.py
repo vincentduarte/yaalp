@@ -1,5 +1,31 @@
 from yalpsequence import *
 
+# There should only be one instance of Midi_bank because it ties the MIDI resources
+bank_midi = None
+bank_synth = None
+bank_wave = None
+
+def get_bank(s):
+	# Get the bank. (Only creates a bank if it is used)
+	global bank_midi,bank_synth,bank_wave
+	if s=='midi':
+		import instrument_midi
+		if bank_midi==None: bank_midi = instrument_midi.Midi_bank()
+		return bank_midi
+	elif s=='synth':
+		import instrument_synth
+		if bank_synth==None: bank_synth = instrument_synth.Synth_bank()
+		return bank_synth
+	elif s=='wave':
+		import instrument_wave
+		if bank_wave==None: bank_wave = instrument_synth.Wave_bank()
+		return bank_wave
+	return None
+
+def playSequence(seq):
+	bank = get_bank(seq.instrument[0])
+	bank.playSequence(seq)
+
 def shell():
 	env = Environment() # Contains state about last duration, etc.
 	currentInstrument = ('midi', 1)
@@ -9,38 +35,38 @@ def shell():
 		strIn = raw_input('>')
 		if strIn == '': continue
 		if strIn == 'exit' or strIn=='q': return
+		
+		if strIn[0] == ':':
+			strIn = strIn[1:]
+			voicetype, voicename = strIn.split(' ',2)
+			voicetype = voicetype.lower()
+			if voicetype=='midi':
+				bank = get_bank('midi')
+				result = bank.user_queryVoice(voicename)
+				if result!=None:
+					# Return format is ('voicename',voicenumber)
+					currentInstrument = ('midi', result[1])
+					
+			elif voicetype=='wave':
+				bank = get_bank('wave')
+				result = bank.user_queryVoice(voicename)
+				if result!=None:
+					# Return format is ('filename','fullpath')
+					currentInstrument = ('wave', result[1])
+			
+			elif voicetype=='synth':
+				bank = get_bank('synth')
+				result = bank.user_queryVoice(voicename)
+				if result!=None:
+					# Return format is 'synthname'
+					currentInstrument = ('synth', result)
+			else:
+				print 'Invalid bank type. Choose one of midi,wave, or synth.'
+				
+			continue
+			
 			
 		strSplit = strIn.split()
-		if strSplit[0] == '<?': 
-			#User is querying about an instrument
-			if strSplit[1]=='m': #midi
-				import instrument_midi
-				instrument_midi.queryMidiInstrument(' '.join(strSplit[2:]))
-			elif strSplit[1]=='s':
-				import instrument_synth
-				instrument_synth.querySynth(' '.join(strSplit[2:]))
-			elif strSplit[1]=='w':
-				import instrument_wave
-				instrument_wave.queryWave(' '.join(strSplit[2:]))
-			continue
-		if strSplit[0] == '<':
-			#Change the current instrument.
-			if strSplit[1]=='m':
-				import instrument_midi
-				nInst = instrument_midi.parseMidiInstrument(' '.join(strSplit[2:]))
-				if nInst != -1:
-					currentInstrument = ('midi', nInst)
-			elif strSplit[1]=='s':
-				import instrument_synth
-				strRet = instrument_synth.parseSynth(' '.join(strSplit[2:]))
-				if strRet != None:
-					currentInstrument = ('synth', strRet)
-			elif strSplit[1]=='w':
-				import instrument_wave
-				strRet = instrument_wave.parseWave(' '.join(strSplit[2:]))
-				if strRet != None:
-					currentInstrument = ('wave', strRet)
-			continue
 		
 		if len(strSplit) > 1 and strSplit[1] == '=':
 			if not _isvalidname(strSplit[0]):
@@ -55,7 +81,7 @@ def shell():
 				print 'Sequence did not parse'
 				continue
 			memory_sequences[strSplit[0]] = sequence
-			sequence.play()
+			playSequence(sequence)
 			continue
 		
 		# is it a saved sequence?
@@ -74,7 +100,7 @@ def shell():
 			thenotes = copy.deepcopy(memory_sequences[strSplit[0]].notes)
 			for i in range(nTimes-1):
 				newseq.notes.extend(thenotes)
-			newseq.play()
+			playSequence(newseq)
 			
 			if strSaveTo != None:
 				if newseq.instrument[0]=='midi':print 'Cannot save to midi yet'
@@ -91,7 +117,7 @@ def shell():
 				print 'Expression did not parse'
 				continue
 				
-			sequence.play()
+			playSequence(sequence)
 			
 def parse(strIn, env, currentInstrument):
 	"""Takes a string, returns a Sequence"""

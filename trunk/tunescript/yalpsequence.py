@@ -9,6 +9,9 @@ class YalpSequence:
 	tempo = 60
 	instrument = ('midi', 1) #Means midi bank, using instrument 1
 	env = None
+	bank_midi = None
+	bank_wave = None
+	bank_synth = None
 	def AddNotes(self, strNotes):
 		if self.env==None: self.env = Environment()
 		astrNotes = strNotes.split()
@@ -19,16 +22,7 @@ class YalpSequence:
 				return -1
 			self.notes.append(note)
 		return 1
-	def play(self):
-		if self.instrument[0]=='midi':
-			import instrument_midi
-			instrument_midi.playSequence(self)
-		elif self.instrument[0]=='synth':
-			import instrument_synth
-			instrument_synth.playSequence(self)
-		elif self.instrument[0]=='wave':
-			import instrument_wave
-			instrument_wave.playSequence(self)
+		
 			
 
 class Note:

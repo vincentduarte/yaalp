@@ -2,8 +2,9 @@
 from PMIDI.Composer import Sequencer
 import time
 
+import tunescript_bank
 
-class Midi_bank(Tunescript_bank):
+class Midi_bank(tunescript_bank.Tunescript_bank):
 	def __init__(self):		
 		# create the sequencer
 		self.seq = Sequencer()
