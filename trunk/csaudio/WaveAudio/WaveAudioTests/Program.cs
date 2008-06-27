@@ -1,0 +1,135 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using CsWaveAudio;
+
+namespace WaveAudioTests
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            AudioPlayer pl = new AudioPlayer();
+
+            // Uncomment the tests you wish to run.
+
+
+            // CsWaveAudioTests.synthtests(pl);
+            //CsWaveAudioTests.effectstest(pl);
+            CsWaveAudioTests.iotests();
+            CsWaveAudioTests.propertytests();
+            CsWaveAudioTests.operations_test(pl);
+
+            Console.WriteLine("Done");
+            Console.ReadKey();
+        }
+    }
+
+    static partial class CsWaveAudioTests
+    {
+        public static string mediadir = "..\\..\\test_media\\";
+        public static void effectstest(AudioPlayer pl)
+        {
+            WaveAudio w = new WaveAudio(mediadir + "d44k16bit2ch.wav");
+            pl.Play(Effects.Derivative(w));
+            pl.Play(Effects.Flange(w));
+            pl.Play(Effects.Reverse(w));
+            pl.Play(Effects.ScalePitchAndDuration(w, 0.75));
+            pl.Play(Effects.ScalePitchAndDuration(w, 1.25));
+            pl.Play(Effects.Tremolo(w, 1.0, 1.0));
+            pl.Play(Effects.Vibrato(w, 0.1));
+
+            w.setSampleRate(22050);
+            pl.Play(w); // should sound "normal"
+        }
+
+        public static void synthtests(AudioPlayer pl)
+        {
+            // also tests performance, because if there is a long pause, this is taking a bit to calculate.
+            pl.Play(new CsWaveAudio.Triangle(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.Sawtooth(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.Square(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.Sine(300.0, 0.7).CreateWaveAudio(0.5));
+
+            pl.Play(new CsWaveAudio.SineWaveSum(new double[] { 300.0 }, new double[] { 1.0 }, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.SineWaveOrgan(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.SineWaveSmooth(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.ElectricOrgan(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.SquarePhaser(300.0, 0.7).CreateWaveAudio(0.5));
+
+            pl.Play(new CsWaveAudio.Splash(0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.RedNoise(0.1).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.WhiteNoise(0.7).CreateWaveAudio(0.5));
+        }
+
+        public static void propertytests()
+        {
+            // these aren't the best tests.
+            WaveAudio w1 = new WaveAudio(44100, 2);
+            asserteq(w1.data.Length, 2, "channels");
+            asserteq(w1.getNumChannels(), 2, "channels");
+            assert(w1.data[0] != null && w1.data[1] != null, "channels");
+            assert(w1.data[0].Length == 1 && w1.data[1].Length == 1, "004");
+            asserteq(w1.getSampleRate(), 44100, "005");
+
+            WaveAudio w1m = new WaveAudio(22050, 1);
+            asserteq(w1m.data.Length, 1, "channels");
+            assert(w1m.data[0] != null, "channels");
+            asserteq(w1m.data[0].Length, 1, "004");
+            asserteq(w1m.getSampleRate(), 22050, "005");
+
+            // now set some properties
+            w1m.LengthInSamples = 100;
+            asserteq(w1m.data[0].Length, 100);
+            asserteqf(w1m.LengthInSeconds, 100 / (double)w1m.getSampleRate(), 0.001);
+        }
+
+        public static void iotests()
+        {
+            iotests_perfile(mediadir + "d22k8bit1ch.wav", 8, 1, 22050);
+            iotests_perfile(mediadir + "d22k8bit2ch.wav", 8, 2, 22050);
+            iotests_perfile(mediadir + "d22k16bit1ch.wav", 16, 1, 22050);
+            iotests_perfile(mediadir + "d44k8bit1ch.wav", 8, 1, 44100);
+            iotests_perfile(mediadir + "d44k16bit1ch.wav", 16, 1, 44100);
+            iotests_perfile(mediadir + "d44k16bit2ch.wav", 16, 2, 44100);
+        }
+        static void iotests_perfile(string strFilename, int nBits, int nChannels, int nRate)
+        {
+            WaveAudio w01 = new WaveAudio(strFilename);
+            asserteq(w01.getNumChannels(), nChannels);
+            asserteq(w01.getSampleRate(), nRate, "011");
+            asserteqf(w01.LengthInSamples, 90725 * (nRate / 22050), 1.0, "012"); //note give 1.0 tolerance
+            asserteqf(w01.LengthInSeconds, 4.1145124, "013");
+
+            asserteq(w01.data.Length, nChannels);
+            asserteq(w01.data[0].Length, w01.LengthInSamples);
+            for (int i = 0; i < nChannels; i++)
+                asserteq(w01.data[i].Length, w01.LengthInSamples);
+
+            // test converting to other rates / quality
+            w01.SaveWaveFile(mediadir + "ttout\\o_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
+            nBits = (nBits == 8) ? 16 : 8;
+            w01.SaveWaveFile(mediadir + "ttout\\ot_" + nRate + "_" + nBits + "_" + nRate + "_" + nChannels + ".wav", nBits);
+        }
+        public static void operations_test(AudioPlayer pl)
+        {
+            WaveAudio noteLongLow = new Triangle(Triangle.FrequencyFromMidiNote(60), 0.5).CreateWaveAudio(1.0);
+            WaveAudio noteShortHi = new Triangle(Triangle.FrequencyFromMidiNote(64), 0.5).CreateWaveAudio(0.5);
+
+            pl.Play(WaveAudio.Concatenate(noteLongLow, noteShortHi));
+            pl.Play(WaveAudio.Concatenate(noteShortHi, noteLongLow));
+            pl.Play(WaveAudio.Mix(noteShortHi, noteLongLow));
+            pl.Play(WaveAudio.Mix(noteLongLow, noteShortHi));
+            WaveAudio tmp = new Sine(200,1.0).CreateWaveAudio(4.0);
+            tmp.setNumChannels(2, true);
+            pl.Play(WaveAudio.Modulate(new WaveAudio(mediadir+"d44k16bit2ch.wav"), tmp));
+
+            WaveAudio cp;
+            cp = noteLongLow.Clone(); cp.FadeIn(0.3); pl.Play(cp);
+            cp = noteLongLow.Clone(); cp.FadeOut(0.3); pl.Play(cp);
+            cp = noteLongLow.Clone(); cp.Amplify(0.5); pl.Play(cp);
+            cp = noteLongLow.Clone(); cp.Amplify(2.0); pl.Play(cp);
+            
+        }
+    }
+}
