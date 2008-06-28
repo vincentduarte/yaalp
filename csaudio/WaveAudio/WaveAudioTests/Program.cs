@@ -15,10 +15,10 @@ namespace WaveAudioTests
 
 
             // CsWaveAudioTests.synthtests(pl);
-            //CsWaveAudioTests.effectstest(pl);
-            CsWaveAudioTests.iotests();
-            CsWaveAudioTests.propertytests();
-            CsWaveAudioTests.operations_test(pl);
+            CsWaveAudioTests.effectstest(pl);
+            //CsWaveAudioTests.iotests();
+            //CsWaveAudioTests.propertytests();
+            //CsWaveAudioTests.operations_test(pl);
 
             Console.WriteLine("Done");
             Console.ReadKey();
@@ -37,7 +37,7 @@ namespace WaveAudioTests
             pl.Play(Effects.ScalePitchAndDuration(w, 0.75));
             pl.Play(Effects.ScalePitchAndDuration(w, 1.25));
             pl.Play(Effects.Tremolo(w, 1.0, 1.0));
-            pl.Play(Effects.Vibrato(w, 0.1));
+            pl.Play(Effects.Vibrato(w, 0.2, 0.5));
 
             w.setSampleRate(22050);
             pl.Play(w); // should sound "normal"
