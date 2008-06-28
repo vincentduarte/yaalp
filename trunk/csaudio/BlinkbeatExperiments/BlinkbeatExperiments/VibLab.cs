@@ -78,6 +78,14 @@ namespace BlinkbeatExperiments
         {
             vibLab_updatePanelClick(vibLab_lblPanel1, ref vibLab_valueFreq1, ref vibLab_valueWidth1);
         }
+        private void vibLab_lblPanel2_Click(object sender, EventArgs e)
+        {
+            vibLab_updatePanelClick(vibLab_lblPanel2, ref vibLab_valueFreq2, ref vibLab_valueWidth2);
+        }
+        private void vibLab_lblPanel3_Click(object sender, EventArgs e)
+        {
+            vibLab_updatePanelClick(vibLab_lblPanel3, ref vibLab_valueFreq3, ref vibLab_valueWidth3);
+        }
 
         private void vibLab_updatePanelClick(Label lbl, ref double vfreq, ref double vwidth)
         {
@@ -85,8 +93,8 @@ namespace BlinkbeatExperiments
             if (strFreq == null || strFreq == "") return;
             string strWidth = SimpleInput.AskSimpleInput("Choose width (amount):", "Choose width:", "0.300");
             if (strWidth == null || strWidth == "") return;
-            vibLab_valueFreq1 = double.Parse(strFreq);
-            vibLab_valueWidth1 = double.Parse(strWidth);
+            vfreq = double.Parse(strFreq);
+            vwidth = double.Parse(strWidth);
 
             lbl.Text = Math.Round(vfreq, 3) + " ; " + Math.Round(vwidth, 3);
         }
