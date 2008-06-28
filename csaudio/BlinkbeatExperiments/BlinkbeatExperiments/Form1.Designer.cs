@@ -281,6 +281,7 @@ namespace BlinkbeatExperiments
             this.vibLab_lblPanel3.Size = new System.Drawing.Size(10, 13);
             this.vibLab_lblPanel3.TabIndex = 9;
             this.vibLab_lblPanel3.Text = " ";
+            this.vibLab_lblPanel3.Click += new System.EventHandler(this.vibLab_lblPanel3_Click);
             // 
             // vibLab_chkTrem3
             // 
@@ -354,6 +355,7 @@ namespace BlinkbeatExperiments
             this.vibLab_lblPanel2.Size = new System.Drawing.Size(10, 13);
             this.vibLab_lblPanel2.TabIndex = 9;
             this.vibLab_lblPanel2.Text = " ";
+            this.vibLab_lblPanel2.Click += new System.EventHandler(this.vibLab_lblPanel2_Click);
             // 
             // vibLab_chkTrem2
             // 
