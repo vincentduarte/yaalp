@@ -53,7 +53,7 @@ namespace BlinkbeatExperiments
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(233, 103);
+            this.btnOk.Location = new System.Drawing.Point(241, 103);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 2;
@@ -72,9 +72,11 @@ namespace BlinkbeatExperiments
             // 
             // SimpleInput
             // 
+            this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(463, 147);
+            this.CancelButton = this.btnCancel;
+            this.ClientSize = new System.Drawing.Size(427, 150);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.textBox1);
