@@ -38,7 +38,7 @@ def shell():
 		
 		if strIn[0] == ':':
 			strIn = strIn[1:]
-			voicetype, voicename = strIn.split(' ',2)
+			voicetype, voicename = strIn.split(' ',1)
 			voicetype = voicetype.lower()
 			if voicetype=='midi':
 				bank = get_bank('midi')
