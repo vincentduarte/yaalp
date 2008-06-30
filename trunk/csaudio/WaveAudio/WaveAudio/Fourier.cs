@@ -111,7 +111,7 @@ namespace CsWaveAudio
             double chunkframerate = input.getSampleRate() / nBufsize; // the chunks go by at this rate.
 
             // do first FFT
-            double[][] frequencyData = SpectrumContentOverTime(w, nBufsize, 4);
+            double[][] frequencyData = SpectrumContentOverTime(w, 4, nBufsize);
 
             // create a new signal in time, consisting of the energy at lowest 1/4 freqs of the chunks.
             int slength = (int)Fourier.findNearestPowerOfTwo((uint)frequencyData.Length);
