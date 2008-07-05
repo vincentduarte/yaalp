@@ -119,7 +119,7 @@ namespace CsWaveAudio
                         outData[i] += amplitude * Math.Sin(i * timescales[w]) * weights[w];
 
                     if (outData[i] > 1.0) outData[i] = 1.0;
-                    else if (outData[i] < 1.0) outData[i] = -1.0;
+                    else if (outData[i] < -1.0) outData[i] = -1.0;
                 }
                 return outData;
             }
