@@ -19,12 +19,12 @@ namespace CsWaveAudio
         public abstract class SynthesisBase
         {
             public const int SampleRate = 44100;
-            protected abstract void generate(double[] outData);
+            protected abstract double[] generate(int nLengthInSamples);
             public virtual WaveAudio CreateWaveAudio(double fSeconds)
             {
                 WaveAudio res = new WaveAudio(SampleRate, 1);
-                res.LengthInSeconds = fSeconds;
-                this.generate(res.data[0]);
+                int nSamples = (int) (fSeconds * res.getSampleRate());
+                res.data[0] = this.generate(nSamples);
                 return res;
             }
 
@@ -51,8 +51,9 @@ namespace CsWaveAudio
                 this.period = SampleRate / freq;
             }
             protected abstract double WaveformFunction(int i);
-            protected override void generate(double[] outData)
+            protected override double[] generate(int nSamples)
             {
+                double[] outData = new double[nSamples];
                 // could be as simple as: for (int i = 0; i < outData.Length; i++) { outData[i] = WaveformFunction(i) * amplitude; }
                 // but, because it is periodic, we can optimize. There is a slight amount of rounding involved which shouldn't be audible.
 
@@ -64,6 +65,7 @@ namespace CsWaveAudio
                     else
                         outData[i] = outData[i % waveformPeriod];
                 }
+                return outData;
             }
         }
 
@@ -75,12 +77,14 @@ namespace CsWaveAudio
             {
                 this.amplitude = amplitude;
             }
-            protected override void generate(double[] outData)
+            protected override double[] generate(int nSamples)
             {
+                double[] outData = new double[nSamples];
                 for (int i = 0; i < outData.Length; i++)
                 {
                     outData[i] = WaveformFunction(i) * amplitude;
                 }
+                return outData;
             }
         }
 
@@ -101,8 +105,9 @@ namespace CsWaveAudio
                     for (int i = 0; i < weights.Length; i++)
                         weights[i] /= fTotal;
             }
-            protected override void generate(double[] outData)
+            protected override double[] generate(int nSamples)
             {
+                double[] outData = new double[nSamples];
                 // create array of timescales
                 double[] timescales = new double[this.frequencies.Length];
                 for (int i = 0; i < timescales.Length; i++)
@@ -116,7 +121,7 @@ namespace CsWaveAudio
                     if (outData[i] > 1.0) outData[i] = 1.0;
                     else if (outData[i] < 1.0) outData[i] = -1.0;
                 }
-                
+                return outData;
             }
         }
 
