@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="Effects.cs" />
     <Compile Include="Fourier.cs" />
+    <Compile Include="PitchDetection.cs" />
     <Compile Include="Synthesis.cs" />
     <Compile Include="SynthesisBaseClasses.cs" />
     <Compile Include="SynthesisConstructiveSynth.cs" />
