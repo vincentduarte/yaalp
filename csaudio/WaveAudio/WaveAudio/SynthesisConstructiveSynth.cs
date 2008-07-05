@@ -88,7 +88,7 @@ namespace CsWaveAudio
         {
             this.frequency = freq; this.amplitude = amplitude;
         }
-        protected override void generate(double[] outData) { }
+        protected override double[] generate(int nSamples) { return null; }
         public override WaveAudio CreateWaveAudio(double fSeconds)
         {
             WaveAudio w1 = new CircleWave(frequency, amplitude).CreateWaveAudio(fSeconds);
@@ -133,8 +133,9 @@ namespace CsWaveAudio
 
             this.normalizeWeights();
         }
-        protected override void generate(double[] outData)
+        protected override double[] generate(int nSamples)
         {
+            double[] outData = new double[nSamples];
             // create array of timescales
             double[] timescales = new double[this.frequencies.Length];
             for (int i = 0; i < timescales.Length; i++)
@@ -148,6 +149,7 @@ namespace CsWaveAudio
 
             // normalize by this
             for (int i = 0; i < outData.Length; i++) outData[i] /= dmax;
+            return outData;
         }
         protected virtual void sumSineWaves(double[] timescales, double[] outData)
         {
