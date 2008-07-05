@@ -2,6 +2,7 @@ WaveAudio
 C# classes for digital audio
 Copyright (C) 2008  Ben Fisher
 Raw FFT calculation code by Don Cross, http://web.archive.org/web/20020124104515/http://www.intersrv.com/~dcross/fft.html
+Pink noise generation algorithm by Larry Trammell, http://home.earthlink.net/~ltrammell/tech/pinkalg.htm
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
