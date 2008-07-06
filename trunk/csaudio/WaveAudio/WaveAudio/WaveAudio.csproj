@@ -39,6 +39,7 @@
     <Compile Include="Synthesis.cs" />
     <Compile Include="SynthesisBaseClasses.cs" />
     <Compile Include="SynthesisConstructiveSynth.cs" />
+    <Compile Include="SynthesisPadSynth.cs" />
     <Compile Include="WaveAudio.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WaveAudioOperations.cs" />
