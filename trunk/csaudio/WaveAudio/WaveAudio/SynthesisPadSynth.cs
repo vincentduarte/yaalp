@@ -67,7 +67,6 @@ namespace CsWaveAudio
         public abstract class PadSynthesisBase : FourierSynthesisBase
         {
             protected readonly double frequency;
-            protected double fBandwidth = 60.0;
 
             public PadSynthesisBase(double frequency, double amplitude)
                 : base(amplitude)
@@ -75,10 +74,17 @@ namespace CsWaveAudio
                 this.frequency = frequency;
             }
 
-            /*protected virtual double getHarmonicRatio()
+            // Get the frequency of the nth harmonic. Can be overridden to create metallic effects.
+            protected virtual double getHarmonicFrequency(int nHarmonic)
             {
-                return 
-            }*/
+                return nHarmonic * this.frequency;
+            }
+            // Get the bandwidth of the nth harmonic (the width of the distribution).
+            protected virtual double getBandwidthInHertz(int nHarmonic)
+            {
+                const double baseBandwidth = 60.0;
+                return (Math.Pow(2.0, baseBandwidth / 1200.0) - 1.0) * getHarmonicFrequency(nHarmonic);
+            }
 
             // This is the profile of one harmonic. In this case is a Gaussian distribution, e^(-x^2) 
             private double profile(double fi, double bandwidth)
@@ -93,9 +99,6 @@ namespace CsWaveAudio
             {
                 double[] A = GetHarmonicWeights();
 
-                double baseBandwidth = this.fBandwidth;
-                double baseFrequency = this.frequency;
-
                 //only the first half of this is filled, because the second half is negative frequencies that are only important for a complex signal
                 double[] freq_amp = new double[N]; 
 
@@ -104,10 +107,10 @@ namespace CsWaveAudio
                 {
                     //bandwidth of the current harmonic measured in Hz
                     //note that this is wider for each harmonic
-                    double bw_Hz = (Math.Pow(2.0, baseBandwidth / 1200.0) - 1.0) * baseFrequency * nHarmonic;
+                    double bw_Hz = getBandwidthInHertz(nHarmonic);
 
                     double bwi = bw_Hz / (2.0 * SampleRate);
-                    double fi = baseFrequency * nHarmonic / (double)SampleRate;
+                    double fi = getHarmonicFrequency(nHarmonic) / (double)SampleRate;
                     for (int i = 0; i < N/2; i++)
                     {
                         double hprofile = profile((i / (double)N) - fi, bwi);
@@ -124,14 +127,37 @@ namespace CsWaveAudio
         }
     }
 
-
+    /// <summary>
+    /// Reference of PadSynthesis
+    /// </summary>
     public class PadSynthesis : SynthesisBaseClasses.PadSynthesisBase
     {
-        protected double fScaleFormants;
-        public PadSynthesis(double frequency, double amplitude, double fScaleFormantsIn)
+        public PadSynthesis(double frequency, double amplitude)
             : base(frequency, amplitude)
         {
-            this.fScaleFormants = fScaleFormantsIn;
+        }
+        protected override double[] GetHarmonicWeights()
+        {
+            const int nHarmonics = 64;
+            double[] A = new double[nHarmonics]; //note that A[0] is unused
+            for (int i = 1; i < nHarmonics; i++)
+            {
+                A[i] = (1.0 / (double)i);
+            }
+            return A;
+        }
+    }
+
+    /// <summary>
+    /// Uses formants to approximate singing, although if the formants are scaled it can sound like strings.
+    /// </summary>
+    public class PadSynthesisChoir : SynthesisBaseClasses.PadSynthesisBase
+    {
+        protected double fScaleFormants;
+        public PadSynthesisChoir(double frequency, double amplitude, double fScaleFormants)
+            : base(frequency, amplitude)
+        {
+            this.fScaleFormants = fScaleFormants;
         }
         protected override double[] GetHarmonicWeights()
         {
@@ -141,6 +167,7 @@ namespace CsWaveAudio
             double f1 = this.frequency * this.fScaleFormants; // 1/16 ~ strings
 
             double[,] formantParameters = new double[,] { 
+                // freq, width, height
                 { 600, 1/150.0, 1.0},
                 { 900, 1/250.0, 1.0}, 
                 { 2200, 1/200.0, 1.0 }, 
@@ -150,12 +177,61 @@ namespace CsWaveAudio
             for (int i = 1; i < nHarmonics; i++)
             {
                 double weight = 0.0;
-                
-                for (int j = 0; j < formantParameters.GetLength(0); j++)
-                    weight += Math.Exp(-Math.Pow((i*f1 - formantParameters[j, 0]) * formantParameters[j, 1], 2.0)) * formantParameters[j,2];
-                
-                A[i] = (1.0 / (double)i) * weight;
 
+                for (int j = 0; j < formantParameters.GetLength(0); j++)
+                    weight += Math.Exp(-Math.Pow((i * f1 - formantParameters[j, 0]) * formantParameters[j, 1], 2.0)) * formantParameters[j, 2];
+
+                A[i] = (1.0 / (double)i) * weight;
+            }
+            return A;
+        }
+    }
+
+    /// <summary>
+    /// Overrides some methods in PadSynthesis
+    /// </summary>
+    public class PadSynthesisExtended : SynthesisBaseClasses.PadSynthesisBase
+    {
+        protected double fScaleFormants;
+        public PadSynthesisExtended(double frequency, double amplitude, double fScaleFormants)
+            : base(frequency, amplitude)
+        {
+            this.fScaleFormants = fScaleFormants;
+        }
+        protected override double getHarmonicFrequency(int nHarmonic)
+        {
+            return this.frequency * nHarmonic;// *(nHarmonic * 0.02 + 1.0); //Gives a metallic non-organic quality
+        }
+        protected override double getBandwidthInHertz(int nHarmonic)
+        {
+            const double bandwidth = 60.0;
+            const double bandwidthScale = 20.0;
+            return this.frequency * (Math.Pow(2.0, bandwidth / 1200.0) - 1.0) * Math.Pow(getHarmonicFrequency(nHarmonic)/frequency, bandwidthScale);
+        }
+
+        protected override double[] GetHarmonicWeights()
+        {
+            const int nHarmonics = 64;
+
+            double[] A = new double[nHarmonics]; //note that A[0] is unused
+            double f1 = this.frequency * this.fScaleFormants; // 1/16 ~ strings
+
+            double[,] formantParameters = new double[,] { 
+                // freq, width, height
+                { 600, 1/150.0, 1.0},
+                { 900, 1/250.0, 1.0}, 
+                { 2200, 1/200.0, 1.0 }, 
+                { 2600, 1/250.0, 1.0 },
+                { 0, 1/3000.0, 0.1 }
+            };
+            for (int i = 1; i < nHarmonics; i++)
+            {
+                double weight = 0.0;
+
+                for (int j = 0; j < formantParameters.GetLength(0); j++)
+                    weight += Math.Exp(-Math.Pow((i * f1 - formantParameters[j, 0]) * formantParameters[j, 1], 2.0)) * formantParameters[j, 2];
+
+                A[i] = (1.0 / (double)i) * weight;
             }
             return A;
         }
