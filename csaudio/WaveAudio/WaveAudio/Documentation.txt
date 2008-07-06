@@ -30,7 +30,7 @@ WaveAudio alteredSound = Effects.Vibrato(w);
 Sine sine = new Sine(440.0, 0.5); // 440Hz, at half volume
 WaveAudio note = sine.CreateAudio(1.0); //generate 1 second of audio
 
-Triangle synth = new Sine(Sine.FreqFromMidiNote(60)); // middle C
+Triangle synth = new Triangle(Sine.FreqFromMidiNote(60)); // middle C
 WaveAudio note = synth.CreateAudio(1.0); //generate 1 second of audio
 
 // find the pitch for the 2nd second of audio
