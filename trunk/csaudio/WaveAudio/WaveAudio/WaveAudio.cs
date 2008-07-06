@@ -188,6 +188,22 @@ namespace CsWaveAudio
             return copy;
         }
 
+        /// <summary>
+        /// Returns a new audio object, containing a slice of the sound.
+        /// </summary>
+        public WaveAudio GetSlice(double fSecondsStart, double fSecondsEnd)
+        {
+            WaveAudio slice = new WaveAudio(this.getSampleRate(), this.getNumChannels());
+            int nStart = (int)(fSecondsStart * this.m_currentSampleRate);
+            int nEnd = (int)(fSecondsEnd * this.m_currentSampleRate);
+            if (nEnd <= nStart || nEnd > this.LengthInSamples || nStart < 0) throw new Exception("Invalid slice");
+            for (int ch = 0; ch < slice.data.Length; ch++)
+            {
+                slice.data[ch] = new double[nEnd-nStart];
+                Array.Copy(this.data[ch],nStart, slice.data[ch],0, nEnd - nStart);
+            }
+            return slice;
+        }
         
         /// <summary>
         /// returns sample in the left-most channel (shortcut for accessing mono files)
