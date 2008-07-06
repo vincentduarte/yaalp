@@ -157,8 +157,18 @@ namespace WaveAudioTests
 
         public static void padsynthtests(AudioPlayer pl)
         {
-            WaveAudio menchoir = new PadSynthesis(110.0, 0.7, 1.0).CreateWaveAudio(4.0);
+            WaveAudio menchoir = new PadSynthesisChoir(110.0, 0.7, 1.0).CreateWaveAudio(4.0);
             pl.Play(menchoir);
+            
+            WaveAudio ww01 = new PadSynthesisEnsemble(Sine.FrequencyFromMidiNote(59), 0.7).CreateWaveAudio(4.0);
+            WaveAudio ww02 = new PadSynthesisEnsemble(Sine.FrequencyFromMidiNote(64), 0.7).CreateWaveAudio(4.0);
+            WaveAudio ww03 = new PadSynthesisEnsemble(Sine.FrequencyFromMidiNote(67), 0.7).CreateWaveAudio(4.0);
+            WaveAudio ww04 = new PadSynthesisEnsemble(Sine.FrequencyFromMidiNote(69 + 12), 0.7).CreateWaveAudio(4.0);
+            pl.Play(WaveAudio.Mix(new WaveAudio[] { ww01, ww02, ww03, ww04 }));
+            
+            WaveAudio guitar1 = new PadSynthesisExtended(110.0, 0.7).CreateWaveAudio(4.0);
+            WaveAudio guitar2 = new PadSynthesisExtended(110.0*1.5, 0.7).CreateWaveAudio(4.0);
+            pl.Play(WaveAudio.Mix(guitar1,guitar2));
         }
     }
 }
