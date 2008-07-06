@@ -2,9 +2,8 @@
 //halfhourhacks.blogspot.com
 //GPL
 
-
 // PadSynth algorithm by by Nasca O. Paul.
-
+// References: http://en.wikibooks.org/wiki/PADsynth_synthesis_algorithm
 using System;
 
 namespace CsWaveAudio
@@ -13,30 +12,32 @@ namespace CsWaveAudio
     {
         /// <summary>
         /// Instruments provide an array in frequency domain, which is then later turned into samples using IFFT.
-        /// Uses random phases
+        /// Uses random phases.
+        /// See FourierSynthesisReferenceImplementation for a simple implementation
         /// </summary>
         public abstract class FourierSynthesisBase : SynthesisBase
         {
-            protected const int N = 65536 * 4; // enough for about 5 secs 
+            protected const int N = 65536 * 4; // enough for about 5 secs
             protected readonly double amplitude;
-            protected abstract double[] BuildFrequencyArray();
+            protected abstract double[] BuildArrayInFrequency();
             public FourierSynthesisBase(double amplitude)
             {
                 this.amplitude = amplitude;
             }
             protected override double[] generate(int nSamples)
             {
-                double[] inData = this.BuildFrequencyArray();
+                // this array contains amplitudes, indices correspond to frequencies
+                double[] arrayInFrequency = this.BuildArrayInFrequency();
 
                 // create real and img. parts, using random phases
                 Random rand = new Random();
-                double[] imgData = new Double[inData.Length];
-                double[] realData = new Double[inData.Length];
-                for (int i = 0; i < inData.Length; i++)
+                double[] imgData = new Double[arrayInFrequency.Length];
+                double[] realData = new Double[arrayInFrequency.Length];
+                for (int i = 0; i < arrayInFrequency.Length; i++)
                 {
                     double phase = rand.NextDouble() * 2.0 * Math.PI;
-                    realData[i] = inData[i] * Math.Cos(phase);
-                    imgData[i] = inData[i] * Math.Sin(phase);
+                    realData[i] = arrayInFrequency[i] * Math.Cos(phase);
+                    imgData[i] = arrayInFrequency[i] * Math.Sin(phase);
                 }
 
                 // perform IFFT
@@ -44,22 +45,25 @@ namespace CsWaveAudio
                 Fourier.RawFrequencyToSamples(out outSamples, realData, imgData);
 
                 //repeat the samples as many times as necessary to fill output buffer
-                // for now, doesn't fill to the brim because I'm lazy
                 int nSize = outSamples.Length;
                 double[] output = new double[nSamples];
-                double pieces = nSamples / (double)nSize; //how many full periods to add to the output
+                double pieces = nSamples / (double)nSize; //how many periods to add to the output
                 for (int nPiece = 0; nPiece < (int)pieces; nPiece++)
                 {
                     Array.Copy(outSamples, 0, output, nPiece * nSize, nSize);
                 }
-                // add the rest of the output
+                // add the remainder to the output (not a full period)
                 Array.Copy(outSamples, 0, output, (int)pieces * nSize, nSamples - (int)pieces * nSize);
                 return output;
             }
         }
 
-
-
+        /// <summary>
+        /// Instruments provide a list of harmonics and weights.
+        /// This "smooths" out the frequencies using a Gaussian distribution.
+        /// The width is greater for higher harmonics, which happens to sound good.
+        /// An improvement would be to decrease the amount of upper harmonics when playing lower frequencies (downscaling the array)
+        /// </summary>
         public abstract class PadSynthesisBase : FourierSynthesisBase
         {
             protected readonly double frequency;
@@ -81,20 +85,21 @@ namespace CsWaveAudio
             {
                 double x = fi / bandwidth; // The amplitude is divided by the bandwidth to ensure that the harmonic keeps the same amplitude regardless of the bandwidth
                 x *= x;
-                return (x > 14.7128) ? 0.0 : Math.Exp(-x) / bandwidth; //this avoids computing the e^(-x^2) where results are very close to zero
+                return (x > 14.7128) ? 0.0 : Math.Exp(-x) / bandwidth; //avoid computing e^(-x^2) where results are very close to zero
             }
 
             // Create array in frequency. We smooth out peaks with Gaussian dist.
-            protected override double[] BuildFrequencyArray()
+            protected override double[] BuildArrayInFrequency()
             {
                 double[] A = GetHarmonicWeights();
 
                 double baseBandwidth = this.fBandwidth;
                 double baseFrequency = this.frequency;
 
-                double[] freq_amp = new double[N]; //only the first half of this is filled.
+                //only the first half of this is filled, because the second half is negative frequencies that are only important for a complex signal
+                double[] freq_amp = new double[N]; 
 
-                //for each harmonic, add to the 
+                //for each harmonic, add to the array.
                 for (int nHarmonic = 1; nHarmonic < A.Length; nHarmonic++)
                 {
                     //bandwidth of the current harmonic measured in Hz
@@ -103,7 +108,7 @@ namespace CsWaveAudio
 
                     double bwi = bw_Hz / (2.0 * SampleRate);
                     double fi = baseFrequency * nHarmonic / (double)SampleRate;
-                    for (int i = 0; i < N / 2; i++)
+                    for (int i = 0; i < N/2; i++)
                     {
                         double hprofile = profile((i / (double)N) - fi, bwi);
                         freq_amp[i] += hprofile * A[nHarmonic];
@@ -113,12 +118,12 @@ namespace CsWaveAudio
                 // normalize the results?
 
                 return freq_amp;
-
             }
-            protected abstract double[] GetHarmonicWeights(); // creates an array of 
-
+            // This should return a 1-based array of weights, for each harmonic. (Index 1 is the 1st harmonic, 2 is 2nd, and so on)
+            protected abstract double[] GetHarmonicWeights();
         }
     }
+
 
     public class PadSynthesis : SynthesisBaseClasses.PadSynthesisBase
     {
@@ -154,7 +159,6 @@ namespace CsWaveAudio
             }
             return A;
         }
-
     }
 
 
@@ -162,25 +166,25 @@ namespace CsWaveAudio
 
 
 
-    public class FourierSynthesis : SynthesisBaseClasses.FourierSynthesisBase
+    internal class FourierSynthesisReferenceImplementation : SynthesisBaseClasses.FourierSynthesisBase
     {
         private double[] freqs;
-        public FourierSynthesis(double amplitude)
-            : base(amplitude)
+        public FourierSynthesisReferenceImplementation(double amplitude) : base(amplitude)
         {
             this.freqs = new double[] { 440.0, 500.0 };
+            // we'll create a tone with these frequencies
         }
-        protected override double[] BuildFrequencyArray()
+        protected override double[] BuildArrayInFrequency()
         {
-            double[] amps = new double[N]; // the second half of this is negative frequency which we aren't concerned with
-            // elem 0 is 0, elem N/2 is SampleRate/2
+            double[] amplitudes = new double[N]; // the second half of this is negative frequency which we aren't concerned with
+            
             double dScaledown = (N / 2) / (SampleRate / 2.0); // map 0-22050.0 to 0-512
             for (int i = 0; i < freqs.Length; i++)
             {
                 int index = (int)(freqs[i] * dScaledown);
-                amps[index] = 4000;
+                amplitudes[index] = 4000;
             }
-            return amps;
+            return amplitudes;
         }
     }
 }
