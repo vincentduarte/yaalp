@@ -14,11 +14,13 @@ namespace WaveAudioTests
             // Uncomment the tests you wish to run.
 
 
-            // CsWaveAudioTests.synthtests(pl);
-            CsWaveAudioTests.effectstest(pl);
+            //CsWaveAudioTests.synthtests(pl);
+            //CsWaveAudioTests.padsynthtests(pl);
+            //CsWaveAudioTests.effectstest(pl);
             //CsWaveAudioTests.iotests();
             //CsWaveAudioTests.propertytests();
             //CsWaveAudioTests.operations_test(pl);
+            CsWaveAudioTests.pitchdetect_test(pl);
 
             Console.WriteLine("Done");
             Console.ReadKey();
@@ -46,16 +48,16 @@ namespace WaveAudioTests
         public static void synthtests(AudioPlayer pl)
         {
             // also tests performance, because if there is a long pause, this is taking a bit to calculate.
-            pl.Play(new CsWaveAudio.Triangle(300.0, 0.7).CreateWaveAudio(0.5));
+            /*pl.Play(new CsWaveAudio.Triangle(300.0, 0.7).CreateWaveAudio(0.5));
             pl.Play(new CsWaveAudio.Sawtooth(300.0, 0.7).CreateWaveAudio(0.5));
             pl.Play(new CsWaveAudio.Square(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.Sine(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.Sine(300.0, 0.7).CreateWaveAudio(0.5));*/
 
             pl.Play(new CsWaveAudio.SineWaveSum(new double[] { 300.0 }, new double[] { 1.0 }, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.SineWaveOrgan(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.SineWaveSmooth(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.ElectricOrgan(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.SquarePhaser(300.0, 0.7).CreateWaveAudio(0.5));
+            pl.Play(new CsWaveAudio.SineWaveOrgan(300.0, 0.7).CreateWaveAudio(1.5));
+            pl.Play(new CsWaveAudio.SineWaveSmooth(300.0, 0.7).CreateWaveAudio(1.5));
+            //pl.Play(new CsWaveAudio.ElectricOrgan(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.SquarePhaser(300.0, 0.7).CreateWaveAudio(3.5));
 
             pl.Play(new CsWaveAudio.Splash(0.7).CreateWaveAudio(0.5));
             pl.Play(new CsWaveAudio.RedNoise(0.1).CreateWaveAudio(0.5));
@@ -130,6 +132,41 @@ namespace WaveAudioTests
             cp = noteLongLow.Clone(); cp.Amplify(0.5); pl.Play(cp);
             cp = noteLongLow.Clone(); cp.Amplify(2.0); pl.Play(cp);
             
+        }
+
+        public static void pitchdetect_test(AudioPlayer pl)
+        {
+            PitchDetection.PitchDetectAlgorithm algorithm = PitchDetection.PitchDetectAlgorithm.Amdf;
+            string[] strFiles = new string[] { "btrombone1.wav", "btrombone2.wav", "cello.wav", "cello2.wav", "flute.wav", "organ.wav", "piano.wav", "sing01.wav", "sing02.wav", "sing03.wav", "trumpet.wav" };
+            foreach (string s in strFiles)
+                pitchdetectwav(pl, s, algorithm);
+        }
+
+        // Test between 20Hz and 500Hz. This works very well, although it is hard to eliminate octave errors
+        // This test will play original, then a sine at the frequency it detected. The two should line up.
+        private static void pitchdetectwav(AudioPlayer pl, string strFilename, PitchDetection.PitchDetectAlgorithm algorithm)
+        {
+            string strInstdir = mediadir + @"pitchdetect\";
+            WaveAudio w = new WaveAudio(strInstdir + strFilename);
+            if (w.getNumChannels() != 1) w.setNumChannels(1, true);
+            double dfreq = PitchDetection.DetectPitch(w, 50,500,algorithm);
+            WaveAudio testPitch = new Triangle(dfreq, 0.7).CreateWaveAudio(1.0);
+            pl.Play(w);
+            pl.Play(testPitch);
+        }
+
+        public static void padsynthtests(AudioPlayer pl)
+        {
+            //WaveAudio w1 = new Sine(440.0, 0.5).CreateWaveAudio(2.0);
+            // pl.Play(w1);
+            //WaveAudio w = new PadSynthSimple(440, 0.5).CreateWaveAudio(2.0);
+           //WaveAudio w = new StandardPadSynthesis(440, 0.5, 2.0).CreateWaveAudio(2.0);
+            
+            //WaveAudio w3 = new (300, 0.8, 1.0).CreateWaveAudio(6.0);
+            //WaveAudio w3 = new PadSynthSimple(55, 0.8).CreateWaveAudio(6.0);// freq 110 and scale 2 is choir
+            //WaveAudio w3 = new PadSynthesis(300, 0.8, 2.0).CreateWaveAudio(10.0);// freq 110 and scale 2 is choir
+            //pl.Play(w3);
+            //pl.Play(w3);
         }
     }
 }
