@@ -32,22 +32,28 @@ namespace CsWaveAudio
         {
             return detectPitchCalculation(w, minHz, maxHz, 1, 1, algorithm)[0];
         }
-        public static double[] DetectPitchCandidates(WaveAudio w,double minHz, double maxHz, int nCandidates)
+        /// <param name="nCandidates">Number of results to return</param>
+        public static double[] DetectPitchCandidates(WaveAudio w, double minHz, double maxHz, int nCandidates)
         {
             return detectPitchCalculation(w, minHz, maxHz, nCandidates, 1, PitchDetectAlgorithm.Autocorrelation);
         }
+        /// <param name="nCandidates">Number of results to return</param>
         public static double[] DetectPitchCandidates(WaveAudio w, double minHz, double maxHz, int nCandidates, PitchDetectAlgorithm algorithm)
         {
             return detectPitchCalculation(w, minHz, maxHz, nCandidates, 1, algorithm);
         }
+        /// <param name="nCandidates">Number of results to return</param>
+        /// <param name="nResolution">Resolution. A value of 1, default, is slowest but most precise.</param>
         public static double[] DetectPitchCandidates(WaveAudio w, double minHz, double maxHz, int nCandidates, PitchDetectAlgorithm algorithm, int nResolution)
         {
+            if (nResolution < 1) throw new Exception("Resultion must be >= 1");
             return detectPitchCalculation(w, minHz, maxHz, nCandidates, nResolution, algorithm);
         }
 
         // These work by shifting the signal until it seems to correlate with itself.
         // In other words if the signal looks very similar to (signal shifted 200 samples) than the fundamental period is probably 200 samples
         // Note that the algorithm only works well when there's only one prominent fundamental.
+        // This could be optimized by looking at the rate of change to determine a maximum without testing all periods.
         private static double[] detectPitchCalculation(WaveAudio w, double minHz, double maxHz, int nCandidates, int nResolution, PitchDetectAlgorithm algorithm)
         {
             // note that higher frequency means lower period
