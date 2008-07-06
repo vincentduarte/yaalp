@@ -36,8 +36,8 @@ namespace CsWaveAudio
                 for (int i = 0; i < arrayInFrequency.Length; i++)
                 {
                     double phase = rand.NextDouble() * 2.0 * Math.PI;
-                    realData[i] = arrayInFrequency[i] * Math.Cos(phase);
-                    imgData[i] = arrayInFrequency[i] * Math.Sin(phase);
+                    realData[i] = arrayInFrequency[i] * Math.Cos(phase) * amplitude;
+                    imgData[i] = arrayInFrequency[i] * Math.Sin(phase) * amplitude;
                 }
 
                 // perform IFFT
@@ -57,6 +57,25 @@ namespace CsWaveAudio
                 return output;
             }
         }
+        internal class FourierSynthesisReferenceImplementation : SynthesisBaseClasses.FourierSynthesisBase
+        {
+            private double[] freqs;
+            public FourierSynthesisReferenceImplementation(double amplitude): base(amplitude)
+            {
+                this.freqs = new double[] { 440.0, 500.0 }; // we'll create a tone with these frequencies
+            }
+            protected override double[] BuildArrayInFrequency()
+            {
+                double[] amplitudes = new double[N]; // the second half of this is negative frequency which we aren't concerned with
+                double dScaledown = (N / 2) / (SampleRate / 2.0); // map 0-22050.0 to 0-512
+                for (int i = 0; i < freqs.Length; i++)
+                {
+                    int index = (int)(freqs[i] * dScaledown);
+                    amplitudes[index] = 4000;
+                }
+                return amplitudes;
+            }
+        }
 
         /// <summary>
         /// Instruments provide a list of harmonics and weights.
@@ -68,8 +87,7 @@ namespace CsWaveAudio
         {
             protected readonly double frequency;
 
-            public PadSynthesisBase(double frequency, double amplitude)
-                : base(amplitude)
+            public PadSynthesisBase(double frequency, double amplitude) : base(amplitude)
             {
                 this.frequency = frequency;
             }
@@ -128,7 +146,7 @@ namespace CsWaveAudio
     }
 
     /// <summary>
-    /// Reference of PadSynthesis
+    /// Reference implementation of PadSynthesis, sounds fine
     /// </summary>
     public class PadSynthesis : SynthesisBaseClasses.PadSynthesisBase
     {
@@ -142,7 +160,33 @@ namespace CsWaveAudio
             double[] A = new double[nHarmonics]; //note that A[0] is unused
             for (int i = 1; i < nHarmonics; i++)
             {
-                A[i] = (1.0 / (double)i);
+                A[i] = 1.0 / ((double)i*i);
+            }
+            return A;
+        }
+    }
+
+    public class PadSynthesisEnsemble : SynthesisBaseClasses.PadSynthesisBase
+    {
+        protected readonly double baseBandwidth;
+        public PadSynthesisEnsemble(double frequency, double amplitude) : this(frequency, amplitude, 40.0) { }
+        public PadSynthesisEnsemble(double frequency, double amplitude, double baseBandwidth) : base(frequency, amplitude)
+        {
+            this.baseBandwidth = baseBandwidth;
+        }
+        // Get the bandwidth of the nth harmonic (the width of the distribution).
+        protected override double getBandwidthInHertz(int nHarmonic)
+        {
+            return (Math.Pow(2.0, baseBandwidth / 1200.0) - 1.0) * getHarmonicFrequency(nHarmonic);
+        }
+        protected override double[] GetHarmonicWeights()
+        {
+            const int nHarmonics = 64;
+            double[] A = new double[nHarmonics]; //note that A[0] is unused
+            for (int i = 1; i < nHarmonics; i++)
+            {
+                A[i] = 1.0 / ((double)i * i);
+                if (i % 2 == 0) A[i] *= 2;
             }
             return A;
         }
@@ -188,50 +232,42 @@ namespace CsWaveAudio
     }
 
     /// <summary>
-    /// Overrides some methods in PadSynthesis
+    /// Overrides some methods in PadSynthesis for cool results. By default sounds like an electric guitar.
     /// </summary>
     public class PadSynthesisExtended : SynthesisBaseClasses.PadSynthesisBase
     {
-        protected double fScaleFormants;
-        public PadSynthesisExtended(double frequency, double amplitude, double fScaleFormants)
+        protected readonly double fMetallic; //If non-zero, gives a metallic non-organic quality
+        protected readonly int nPower; //Harmonics drop off on the order of 1/n^power
+        protected readonly double bandwidth; //default: 20.0
+        protected readonly double bandwidthScale; //default: 0.5
+        public PadSynthesisExtended(double frequency, double amplitude)
+            : this(frequency, amplitude, 2, 20.0, 0.5, 0.0) { }
+        public PadSynthesisExtended(double frequency, double amplitude, int nPower, double bandwidth, double bandwidthScale)
+            : this(frequency, amplitude, nPower, bandwidth, bandwidthScale, 0.0) {}
+        public PadSynthesisExtended(double frequency, double amplitude, int nPower, double bandwidth, double bandwidthScale, double fMetallic)
             : base(frequency, amplitude)
         {
-            this.fScaleFormants = fScaleFormants;
+            this.nPower = nPower; this.bandwidth = bandwidth; this.bandwidthScale = bandwidthScale; this.fMetallic = fMetallic;
         }
+        // If fMetallic is non-zero, this tweaks the harmonics.
         protected override double getHarmonicFrequency(int nHarmonic)
         {
-            return this.frequency * nHarmonic;// *(nHarmonic * 0.02 + 1.0); //Gives a metallic non-organic quality
+            return this.frequency * nHarmonic * (nHarmonic * fMetallic + 1.0); 
         }
         protected override double getBandwidthInHertz(int nHarmonic)
         {
-            const double bandwidth = 60.0;
-            const double bandwidthScale = 20.0;
-            return this.frequency * (Math.Pow(2.0, bandwidth / 1200.0) - 1.0) * Math.Pow(getHarmonicFrequency(nHarmonic)/frequency, bandwidthScale);
+            return this.frequency * (Math.Pow(2.0, bandwidth / 1200.0) - 1.0) *
+                Math.Pow(getHarmonicFrequency(nHarmonic)/frequency, bandwidthScale);
         }
 
         protected override double[] GetHarmonicWeights()
         {
             const int nHarmonics = 64;
-
             double[] A = new double[nHarmonics]; //note that A[0] is unused
-            double f1 = this.frequency * this.fScaleFormants; // 1/16 ~ strings
-
-            double[,] formantParameters = new double[,] { 
-                // freq, width, height
-                { 600, 1/150.0, 1.0},
-                { 900, 1/250.0, 1.0}, 
-                { 2200, 1/200.0, 1.0 }, 
-                { 2600, 1/250.0, 1.0 },
-                { 0, 1/3000.0, 0.1 }
-            };
             for (int i = 1; i < nHarmonics; i++)
             {
-                double weight = 0.0;
-
-                for (int j = 0; j < formantParameters.GetLength(0); j++)
-                    weight += Math.Exp(-Math.Pow((i * f1 - formantParameters[j, 0]) * formantParameters[j, 1], 2.0)) * formantParameters[j, 2];
-
-                A[i] = (1.0 / (double)i) * weight;
+                // A[i] = 1.0 / ((double)i);
+                A[i] = 1.0 / Math.Pow(i, nPower);
             }
             return A;
         }
@@ -242,25 +278,5 @@ namespace CsWaveAudio
 
 
 
-    internal class FourierSynthesisReferenceImplementation : SynthesisBaseClasses.FourierSynthesisBase
-    {
-        private double[] freqs;
-        public FourierSynthesisReferenceImplementation(double amplitude) : base(amplitude)
-        {
-            this.freqs = new double[] { 440.0, 500.0 };
-            // we'll create a tone with these frequencies
-        }
-        protected override double[] BuildArrayInFrequency()
-        {
-            double[] amplitudes = new double[N]; // the second half of this is negative frequency which we aren't concerned with
-            
-            double dScaledown = (N / 2) / (SampleRate / 2.0); // map 0-22050.0 to 0-512
-            for (int i = 0; i < freqs.Length; i++)
-            {
-                int index = (int)(freqs[i] * dScaledown);
-                amplitudes[index] = 4000;
-            }
-            return amplitudes;
-        }
-    }
+    
 }

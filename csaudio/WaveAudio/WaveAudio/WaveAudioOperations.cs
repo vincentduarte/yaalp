@@ -39,6 +39,24 @@ namespace CsWaveAudio
             };
             return elementWiseCombination(w1, w2, fn);
         }
+        public static WaveAudio Mix(WaveAudio[] waves)
+        {
+            // all must have same length, sample rate, and no. of channels
+            int nSamples = waves[0].LengthInSamples; foreach (WaveAudio w in waves) if (w.LengthInSamples != nSamples) throw new Exception("When mixing array of sounds, they all must be the same length.");
+            int nSampleRate = waves[0].getSampleRate(); foreach (WaveAudio w in waves) if (w.getSampleRate() != nSampleRate) throw new Exception("When mixing array of sounds, they all must have same sample rate.");
+            int nChannels = waves[0].getNumChannels(); foreach (WaveAudio w in waves) if (w.getNumChannels() != nChannels) throw new Exception("When mixing array of sounds, they all must have same amount of channels.");
+            WaveAudio res = new WaveAudio(waves[0].getSampleRate(), waves[0].getNumChannels());
+            res.LengthInSamples = nSamples;
+            for (int ch = 0; ch < nChannels; ch++)
+            {
+                for (int i = 0; i < nSamples; i++)
+                {
+                    double value = 0; foreach (WaveAudio w in waves) value += w.data[ch][i];
+                    res.data[ch][i] = value / waves.Length;
+                }
+            }
+            return res;
+        }
 
         public static WaveAudio Modulate(WaveAudio w1, WaveAudio w2)
         {
