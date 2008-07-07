@@ -32,6 +32,7 @@ namespace Blinkbeat
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.lblFilename = new System.Windows.Forms.Label();
             this.btnStop = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.btnGo = new System.Windows.Forms.Button();
@@ -77,6 +78,7 @@ namespace Blinkbeat
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.lblFilename);
             this.panel1.Controls.Add(this.btnStop);
             this.panel1.Controls.Add(this.lblStatus);
             this.panel1.Controls.Add(this.btnGo);
@@ -96,8 +98,15 @@ namespace Blinkbeat
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(620, 369);
             this.panel1.TabIndex = 1;
-            this.panel1.DragDrop += new System.Windows.Forms.DragEventHandler(this.panel1_DragDrop);
-            this.panel1.DragEnter += new System.Windows.Forms.DragEventHandler(this.panel1_DragEnter);
+            // 
+            // lblFilename
+            // 
+            this.lblFilename.AutoSize = true;
+            this.lblFilename.Location = new System.Drawing.Point(114, 17);
+            this.lblFilename.Name = "lblFilename";
+            this.lblFilename.Size = new System.Drawing.Size(10, 13);
+            this.lblFilename.TabIndex = 7;
+            this.lblFilename.Text = " ";
             // 
             // btnStop
             // 
@@ -112,11 +121,11 @@ namespace Blinkbeat
             // lblStatus
             // 
             this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(548, 73);
+            this.lblStatus.Location = new System.Drawing.Point(570, 144);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(35, 13);
+            this.lblStatus.Size = new System.Drawing.Size(13, 13);
             this.lblStatus.TabIndex = 5;
-            this.lblStatus.Text = "label3";
+            this.lblStatus.Text = "0";
             // 
             // btnGo
             // 
@@ -137,7 +146,6 @@ namespace Blinkbeat
             this.btnOpen.Text = "Open...";
             this.btnOpen.UseVisualStyleBackColor = true;
             this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
-            this.btnOpen.DragEnter += new System.Windows.Forms.DragEventHandler(this.btnOpen_DragEnter);
             // 
             // lblBpm
             // 
@@ -243,7 +251,6 @@ namespace Blinkbeat
             this.Name = "Form1";
             this.Text = "Blinkbeat";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
-            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1_DragEnter);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.panel1.ResumeLayout(false);
@@ -272,6 +279,7 @@ namespace Blinkbeat
         private System.Windows.Forms.Timer timerPulse;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Label lblFilename;
 
 
     }
