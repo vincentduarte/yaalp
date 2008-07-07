@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using CsWaveAudio;
+using System.IO;
 
 namespace Blinkbeat
 {
@@ -29,6 +30,17 @@ namespace Blinkbeat
             this.savedNum = SetKeyState.GetNumState();
             this.savedScroll = SetKeyState.GetScrollState();
             this.savedCaps = SetKeyState.GetCapsState();
+
+            if (File.Exists(@"..\..\cis.wav"))
+                this.m_currentSound = new WaveAudio(@"..\..\cis.wav");
+            else if (File.Exists(@"cis.wav"))
+                this.m_currentSound = new WaveAudio(@"cis.wav");
+
+            if (m_currentSound != null)
+            {
+                this.m_currentSound.setNumChannels(1, true);
+                this.lblFilename.Text = "Loaded: cis.wav";
+            }
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -37,6 +49,7 @@ namespace Blinkbeat
             CommonWave.commonLoadWaveFile(out strFilename, out strShortname, out w);
             if (w==null)
                 return;
+            this.lblFilename.Text = "Loaded: " + strShortname;
             w.setNumChannels(1, true); //convert to mono
             this.m_currentSound = w;
         }
@@ -131,16 +144,16 @@ namespace Blinkbeat
 
 
 
-        private void panel1_DragEnter(object sender, DragEventArgs e)
+        // Drag and drop doesn't seem to work now.
+        private void unused_DragEnter(object sender, DragEventArgs e)
         {
-            e.Effect = DragDropEffects.All;
-           /// if (e.Data.GetDataPresent(DataFormats.FileDrop, false) == true)
-           ///     e.Effect = DragDropEffects.All;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false) == true)
+                e.Effect = DragDropEffects.All;
 
             // otherwise, don't do anything.
         }
 
-        private void panel1_DragDrop(object sender, DragEventArgs e)
+        private void unused_DragDrop(object sender, DragEventArgs e)
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length == 0) return;
@@ -150,31 +163,9 @@ namespace Blinkbeat
                 MessageBox.Show("Drag a standard .wav file into this form.");
                 return;
             }
-            WaveAudio w;
-            try
-            {
-                w = new WaveAudio(strFirstFile);
-            }
-            catch (Exception er)
-            {
-                MessageBox.Show("Error when loading wave file: " + er.Message);
-                return;
-            }
-            w.setNumChannels(1, true); //convert to mono
-            this.m_currentSound = w;
+            // ... load the wave ...
         }
 
-        private void Form1_DragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = DragDropEffects.All;
-           // MessageBox.Show("Test");
-        }
-
-        private void btnOpen_DragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = DragDropEffects.All;
-
-        }
 
 
     }
