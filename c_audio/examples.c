@@ -248,3 +248,22 @@ void testWriteToMemory()
 	
 	free(inmemory);
 }
+
+void testAudacityPhaser()
+{
+	CAudioData * w1; CAudioData* out;
+	char inname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\longinput.wav";
+	errormsg msg = caudiodata_loadwave(&w1, inname);
+	if (msg != OK) {puts(msg); return 0;}
+
+						//double freq, double fb, int depth, int stages, int drywet
+	msg =  effect_phaseraud(&out, w1, .7, -60, 130, 4, 255);
+	if (msg != OK) { puts(msg);  return 0;}
+	
+	char outname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\out2.wav"; 
+	msg = caudiodata_savewave(out, outname, 16);
+	if (msg != OK) {puts(msg); return 0;}
+	
+	caudiodata_dispose( w1);
+	caudiodata_dispose( out);
+}
