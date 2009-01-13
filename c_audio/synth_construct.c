@@ -1,17 +1,17 @@
 //constructive synthesis. summing other sounds to make sounds.
 
-errormsg synth_redglitch(AudioParams**out,double freq, double lengthSeconds, double amp, double chunkLength, double rednoisefactor)
+errormsg synth_redglitch(CAudioData**out,double freq, double lengthSeconds, double amp, double chunkLength, double rednoisefactor)
 {
 	STARTRAND();
 	
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
-	errormsg msg = audioparams_allocate(audio, length, 1, SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
 	if (msg!=OK) return msg;	
 	
-	AudioParams* tmp;
+	CAudioData* tmp;
 	int nChunks = lengthSeconds/chunkLength;
 	int i; for (i=0; i<nChunks; i++)
 	{
@@ -21,20 +21,20 @@ errormsg synth_redglitch(AudioParams**out,double freq, double lengthSeconds, dou
 		
 		int offset = (i * chunkLength * (audio->sampleRate));
 		memcpy(audio->data + offset, tmp->data, tmp->length*sizeof(double));
-		audioparams_dispose(tmp);
+		caudiodata_dispose(tmp);
 	}
 	
 	return OK;
 }
 
 
-errormsg synth_electricorgan(AudioParams**out,double basefreq, double lengthSeconds, double amp)
+errormsg synth_electricorgan(CAudioData**out,double basefreq, double lengthSeconds, double amp)
 {
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (basefreq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
-	errormsg msg = audioparams_allocate(audio, length, 1, SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
 	if (msg!=OK) return msg;
 		
 	OscillatorFn fn = (OscillatorFn) sin;
@@ -57,43 +57,43 @@ errormsg synth_electricorgan(AudioParams**out,double basefreq, double lengthSeco
 }
 
 // Intentional beat frequencies "smoothen" the sound and make it more musical.
-errormsg synth_sinesmooth(AudioParams**out,double freq, double lengthSeconds, double amp)
+errormsg synth_sinesmooth(CAudioData**out,double freq, double lengthSeconds, double amp)
 {
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
-	errormsg msg = audioparams_allocate(audio, length, 1, SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
 	if (msg!=OK) return msg;
 	
-	AudioParams* w1;AudioParams* w2;
+	CAudioData* w1;CAudioData* w2;
 	synth_sin(&w1, freq, lengthSeconds, amp);
 	synth_sin(&w2, freq* 1.0006079, lengthSeconds, amp);
 	int i; for(i=0; i<audio->length; i++)
 		audio->data[i] = 0.6*w1->data[i] + 0.4*w2->data[i];
 	
-	audioparams_dispose(w1);
-	audioparams_dispose(w2);
+	caudiodata_dispose(w1);
+	caudiodata_dispose(w2);
 	return OK;
 }
 
 // Intentional beat frequencies "smoothen" the sound and make it more musical.
-errormsg synth_sineorgan(AudioParams**out,double freq, double lengthSeconds, double amp)
+errormsg synth_sineorgan(CAudioData**out,double freq, double lengthSeconds, double amp)
 {
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
-	errormsg msg = audioparams_allocate(audio, length, 1, SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
 	if (msg!=OK) return msg;
 	
-	AudioParams* w1;AudioParams* w2;
+	CAudioData* w1;CAudioData* w2;
 	synth_sin(&w1, freq, lengthSeconds, amp);
 	synth_sin(&w2, freq* 1.0006079, lengthSeconds, amp);
 	int i; for(i=0; i<audio->length; i++)
 		audio->data[i] = 0.6*w1->data[i] + 0.4*w2->data[i];
 	
-	audioparams_dispose(w1);
-	audioparams_dispose(w2);
+	caudiodata_dispose(w1);
+	caudiodata_dispose(w2);
 	return OK;
 }

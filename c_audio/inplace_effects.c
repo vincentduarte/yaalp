@@ -5,7 +5,7 @@ void inplaceeffect_volume_impl(double * data, int length, double factor)
 	int i; for (i=0; i<length;i++)
 		data[i] = data[i]*factor;
 }
-void inplaceeffect_volume(AudioParams* this, double factor)
+void inplaceeffect_volume(CAudioData* this, double factor)
 {
 	inplaceeffect_volume_impl(this->data,this->length, factor);
 	inplaceeffect_volume_impl(this->data_right,this->length, factor);
@@ -20,7 +20,7 @@ void inplaceeffect_reverse_impl(double * data, int length)
 		data[length-i] = first; data[i] = second;
 	}
 }
-void inplaceeffect_reverse(AudioParams* this)
+void inplaceeffect_reverse(CAudioData* this)
 {
 	inplaceeffect_reverse_impl(this->data,this->length);
 	inplaceeffect_reverse_impl(this->data_right,this->length);
@@ -46,7 +46,7 @@ void inplaceeffect_fade_impl(double * data, int length,  int inOrOut, double fSe
 			data[i] *= fScale* (length-i);
 	}
 }
-void inplaceeffect_fade(AudioParams* this, int inOrOut, double fSeconds)
+void inplaceeffect_fade(CAudioData* this, int inOrOut, double fSeconds)
 {
 	double myLengthInSeconds = this->length / ((double) this->sampleRate);
 	inplaceeffect_fade_impl(this->data,this->length, inOrOut, fSeconds, myLengthInSeconds);
@@ -66,7 +66,7 @@ void inplaceeffect_tremelo_impl(double * data, int length, double tremeloFreqSca
 	}
 }
 // Common values: 1.0, 0.2. tremfreq is in Hz, amp is the strength of the effect.
-void inplaceeffect_tremelo(AudioParams* this, double tremfreq, double amp)
+void inplaceeffect_tremelo(CAudioData* this, double tremfreq, double amp)
 {
 	double tremeloFreqScale = 2.0 * PI * tremfreq / (double)this->sampleRate;
 	inplaceeffect_tremelo_impl(this->data,this->length, tremeloFreqScale, amp);

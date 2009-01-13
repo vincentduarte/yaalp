@@ -33,7 +33,7 @@ int gfputc ( int character, Simplestream * stream )
 	}
 }
 
-errormsg audioparams_savewavestream(AudioParams* this, Simplestream * f, int bitsPerSample /*=8 or 16*/)
+errormsg caudiodata_savewavestream(CAudioData* this, Simplestream * f, int bitsPerSample /*=8 or 16*/)
 {
 	if (bitsPerSample != 8 && bitsPerSample!=16)
 		return "NotSupported:Only 8 bit and 16 bit supported.";
@@ -136,7 +136,7 @@ errormsg audioparams_savewavestream(AudioParams* this, Simplestream * f, int bit
 }
 
 
-errormsg audioparams_savewave(AudioParams* this, char* filename, int bitsPerSample /*=8 or 16*/)
+errormsg caudiodata_savewave(CAudioData* this, char* filename, int bitsPerSample /*=8 or 16*/)
 {
 	FILE * f = fopen(filename,"wb");
 	if (!f) return "Could not open file for writing.";
@@ -144,13 +144,13 @@ errormsg audioparams_savewave(AudioParams* this, char* filename, int bitsPerSamp
 	obj.isFile = 1;
 	obj.f = f;
 	
-	errormsg msg = audioparams_savewavestream(this,&obj,bitsPerSample);
+	errormsg msg = caudiodata_savewavestream(this,&obj,bitsPerSample);
 	fclose(f);
 	return msg;
 }
 
 //user is responsible for freeing!
-errormsg audioparams_savewavemem(char** out, uint*outLengthInBytes, AudioParams* this, int bitsPerSample /*=8 or 16*/)
+errormsg caudiodata_savewavemem(char** out, uint*outLengthInBytes, CAudioData* this, int bitsPerSample /*=8 or 16*/)
 {
 	//allocate memory
 	uint thedatasize = (uint)(this->length * (bitsPerSample / 8) * NUMCHANNELS(this));
@@ -164,7 +164,7 @@ errormsg audioparams_savewavemem(char** out, uint*outLengthInBytes, AudioParams*
 	obj.isFile = 0;
 	obj.mem = mem;
 	
-	errormsg msg = audioparams_savewavestream(this,&obj,bitsPerSample);
+	errormsg msg = caudiodata_savewavestream(this,&obj,bitsPerSample);
 	return msg;
 }
 
@@ -185,10 +185,10 @@ bool strfromfile(FILE*f, char c1, char c2, char c3, char c4)
 //Caller is responsible for freeing object by calling dispose.
 #define READUINT(varname) fread(&varname, sizeof(uint),1,f)
 #define READUSHORT(varname) fread(&varname, sizeof(ushort),1,f)
-errormsg audioparams_loadwave(AudioParams**out, FILE * f)
+errormsg caudiodata_loadwave(CAudioData**out, FILE * f)
 {
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //we'll use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //we'll use audio as an alias for the output, *out.
 	if (!strfromfile(f,'R','I','F','F')) return "No RIFF tag, probably invalid wav file.";
 	
 	uint length; READUINT(length); // (length of file in bytes) - 8
@@ -241,7 +241,7 @@ errormsg audioparams_loadwave(AudioParams**out, FILE * f)
 	int nSamples = ((8 * rawdatalength) / (nBitsPerSample * nChannels));
 	
 	//allocate memory.
-	errormsg msg = audioparams_allocate(audio, nSamples, nChannels, nSampleRate);
+	errormsg msg = caudiodata_allocate(audio, nSamples, nChannels, nSampleRate);
 	if (msg!=OK) return msg;
 	
 	// The next step is to convert data to doubles...this is probably lossless because the precision of doubles is pretty high
