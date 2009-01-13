@@ -1,4 +1,4 @@
 
-errormsg audioparams_savewave(AudioParams* this, FILE * f, int bitsPerSample /*=8 or 16*/);
+errormsg caudiodata_savewave(CAudioData* this, FILE * f, int bitsPerSample /*=8 or 16*/);
 
-errormsg audioparams_loadwave(AudioParams**out, FILE * f);
+errormsg caudiodata_loadwave(CAudioData**out, FILE * f);

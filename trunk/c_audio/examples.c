@@ -1,8 +1,8 @@
-void example1()
+caudiodata_void example1()
 {
 	//create a sample sine wave.
-	AudioParams* audio =  AudioParamsNew();
-	errormsg msg = audioparams_allocate(audio, 44100*4, 1, 44100); // 4 seconds of audio, mono.
+	CAudioData* audio =  CAudioDataNew();
+	errormsg msg = caudiodata_allocate(audio, 44100*4, 1, 44100); // 4 seconds of audio, mono.
 	if (msg!=OK) puts(msg);
 	
 	double freq = 300;
@@ -13,33 +13,33 @@ void example1()
 	}
 	
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(audio, f, 16);
+	msg = caudiodata_savewave(audio, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
-	audioparams_dispose( audio);
+	caudiodata_dispose( audio);
 }
 
 
 void example_mix()
 {
-	AudioParams* w1 =  AudioParamsNew();
-	AudioParams* w2 =  AudioParamsNew();
+	CAudioData* w1 =  CAudioDataNew();
+	CAudioData* w2 =  CAudioDataNew();
 	
 	synth_sin(&w1, 300, 4.0, 0.8); //sine wave, 300Hz
 	synth_sin(&w2, 430, 4.0, 0.8); //sine wave, 430Hz
 	
-	AudioParams* mix;
+	CAudioData* mix;
 	msg = effect_mix(&mix, w1, w2, 0.5, 0.5);
 	if (msg!=OK) puts(msg);
 	
 	FILE * f = fopen("out_mix.wav", "wb");
-	msg = audioparams_savewave(mix, f, 16);
+	msg = caudiodata_savewave(mix, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
 	
-	audioparams_dispose(mix);
-	audioparams_dispose(w1);
-	audioparams_dispose(w2);
+	caudiodata_dispose(mix);
+	caudiodata_dispose(w1);
+	caudiodata_dispose(w2);
 }
 
 void loadtests()
@@ -55,9 +55,9 @@ void loadtests()
 	
 	int i; for (i=0; i<6; i++)
 	{
-		AudioParams * audio;
+		CAudioData * audio;
 		FILE*fin = fopen(tests[i], "rb");
-		errormsg msg = audioparams_loadwave(&audio, fin);
+		errormsg msg = caudiodata_loadwave(&audio, fin);
 		if (msg != OK) puts(msg);
 		fclose(fin);
 		
@@ -67,19 +67,19 @@ void loadtests()
 		char buf[128];
 		sprintf(buf, "out%d.wav", i);
 		FILE * fout=fopen(buf, "wb");
-		msg = audioparams_savewave(audio, fout, 16);
+		msg = caudiodata_savewave(audio, fout, 16);
 		if (msg != OK) puts(msg);
 		fclose(fout);
 		
-		audioparams_dispose(audio);
+		caudiodata_dispose(audio);
 	}
 }
 
 void mixwithsine() // or modulate, or append, an easy change
 {
-	AudioParams * w1; AudioParams* w2;AudioParams* out;
+	CAudioData * w1; CAudioData* w2;CAudioData* out;
 	FILE*fin = fopen("C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit1ch.wav", "rb");
-	errormsg msg = audioparams_loadwave(&w1, fin);
+	errormsg msg = caudiodata_loadwave(&w1, fin);
 	if (msg != OK) puts(msg);
 	fclose(fin);
 	
@@ -88,38 +88,38 @@ void mixwithsine() // or modulate, or append, an easy change
 	msg =  effect_mix(&out, w1, w2, 0.5, 0.1); //effect_append(&out, w2, w1);
 	if (msg != OK) { puts(msg);  return 0;}
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(out, f, 16);
+	msg = caudiodata_savewave(out, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
 	
-	audioparams_dispose( w1);
-	audioparams_dispose( w2);
-	audioparams_dispose( out);
+	caudiodata_dispose( w1);
+	caudiodata_dispose( w2);
+	caudiodata_dispose( out);
 }
 void appendandclone()
 {
-	AudioParams * wsine; AudioParams* wsinelouder;AudioParams* out;
+	CAudioData * wsine; CAudioData* wsinelouder;CAudioData* out;
 
 	synth_sin(&wsine, 300, 1.0, 0.3); //sine wave, 300Hz
 	
-	audioparams_clone(& wsinelouder, wsine);
+	caudiodata_clone(& wsinelouder, wsine);
 	inplaceeffect_volume(wsinelouder, 3);
 	
 	msg =  effect_append(&out, wsine, wsinelouder);
 	if (msg != OK) { puts(msg);  return 0;}
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(out, f, 16);
+	msg = caudiodata_savewave(out, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
 	
-	audioparams_dispose( wsine);
-	audioparams_dispose( wsinelouder);
-	audioparams_dispose( out);
+	caudiodata_dispose( wsine);
+	caudiodata_dispose( wsinelouder);
+	caudiodata_dispose( out);
 }
 
 void testfadein()
 {
-	AudioParams* audio;
+	CAudioData* audio;
 	
 	synth_sin(&audio, 300, 4.0, 0.3); //sine wave, 300Hz
 	
@@ -127,46 +127,46 @@ void testfadein()
 	//~ inplaceeffect_fade(audio, 1, 2.5); // fade in
 	
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(audio, f, 16);
+	msg = caudiodata_savewave(audio, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
-	audioparams_dispose( audio);
+	caudiodata_dispose( audio);
 }
 void testReverse()
 {
-	AudioParams * w1; 
+	CAudioData * w1; 
 	FILE*fin = fopen("C:\\pydev\\yalp\\Subversion\\csaudio\\WaveAudio\\WaveAudioTests\\test_media\\d22k8bit1ch.wav", "rb");
-	errormsg msg = audioparams_loadwave(&w1, fin);
+	errormsg msg = caudiodata_loadwave(&w1, fin);
 	if (msg != OK) puts(msg);
 	fclose(fin);
 	
 	inplaceeffect_reverse(w1);
 	
 	FILE * f = fopen("outrev.wav", "wb");
-	msg = audioparams_savewave(w1, f, 16);
+	msg = caudiodata_savewave(w1, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
-	audioparams_dispose( w1);
+	caudiodata_dispose( w1);
 }
 
 void testTremelo()
 {
-	AudioParams* audio;
+	CAudioData* audio;
 	synth_sin(&audio, 300, 4.0, 0.3); //sine wave, 300Hz
 	
 	inplaceeffect_tremelo(audio, 4, 0.2);
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(audio, f, 16);
+	msg = caudiodata_savewave(audio, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
-	audioparams_dispose( audio);
+	caudiodata_dispose( audio);
 }
 
 void testPitchScaleOrVibrato()
 {
-	AudioParams * w1;AudioParams* out;
+	CAudioData * w1;CAudioData* out;
 	FILE*fin = fopen("longinput.wav", "rb");
-	errormsg msg = audioparams_loadwave(&w1, fin);
+	errormsg msg = caudiodata_loadwave(&w1, fin);
 	if (msg != OK) puts(msg);
 	fclose(fin);
 
@@ -174,28 +174,28 @@ void testPitchScaleOrVibrato()
 	msg =  effect_vibrato(&out, w1, 0.2, 0.1);
 	if (msg != OK) { puts(msg);  return 0;}
 	FILE * f = fopen("out.wav", "wb");
-	msg = audioparams_savewave(out, f, 16);
+	msg = caudiodata_savewave(out, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
 	
-	audioparams_dispose( w1);
-	audioparams_dispose( out);
+	caudiodata_dispose( w1);
+	caudiodata_dispose( out);
 }
 
 void testSynth()
 {
-	AudioParams* audio;
+	CAudioData* audio;
 	synth_sin(&audio, 300, 10.0, 0.8);
 	
 	FILE * f = fopen("out.wav", "wb");
-	errormsg msg = audioparams_savewave(audio, f, 16);
+	errormsg msg = caudiodata_savewave(audio, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
-	audioparams_dispose( audio);
+	caudiodata_dispose( audio);
 }
 void testRedGlitchNess()
 {
-	AudioParams* w1; AudioParams* w2; AudioParams* combo;
+	CAudioData* w1; CAudioData* w2; CAudioData* combo;
 	synth_redglitch(&w1, 100, 20.0, 0.8, 0.09, 0.261); //- cool!
 	synth_redglitch(&w2, 99, 20.0, 0.8, 0.09, 0.33);
 	
@@ -206,45 +206,45 @@ void testRedGlitchNess()
 	//~ synth_redglitch(&w2, 120.6, 20.0, 0.8, 0.09, 0.661);
 	
 	//Left channel is w1, right channel is w2
-	combo = AudioParamsNew();
+	combo = CAudioDataNew();
 	combo->length = w1->length;
 	combo->sampleRate = w1->sampleRate;
 	combo->data = w1->data;
 	combo->data_right = w2->data;
 	
 	FILE * f = fopen("outcombo.wav", "wb");
-	errormsg msg = audioparams_savewave(combo, f, 16);
+	errormsg msg = caudiodata_savewave(combo, f, 16);
 	if (msg != OK) puts(msg);
 	fclose(f);
 	
-	audioparams_dispose( combo);
-	audioparams_dispose( w1);
-	audioparams_dispose( w2);
+	caudiodata_dispose( combo);
+	caudiodata_dispose( w1);
+	caudiodata_dispose( w2);
 }
 void testWriteToMemory()
 {
-	AudioParams* w1; AudioParams* w2; AudioParams* combo;
+	CAudioData* w1; CAudioData* w2; CAudioData* combo;
 	synth_sin(&w1, 300, 2.0, 0.8);
 	synth_sin(&w2, 303, 2.0, 0.8);
 	
 	//Left channel is w1, right channel is w2
-	combo = AudioParamsNew();
+	combo = CAudioDataNew();
 	combo->length = w1->length;
 	combo->sampleRate = w1->sampleRate;
 	combo->data = w1->data;
 	combo->data_right = w2->data;
 	
-	//~ errormsg msg = audioparams_savewave(combo, "outsines.wav", 16);
+	//~ errormsg msg = caudiodata_savewave(combo, "outsines.wav", 16);
 	char *inmemory; uint inmemorylength;
-	errormsg msg = audioparams_savewavemem(&inmemory, &inmemorylength, combo, 16);
+	errormsg msg = caudiodata_savewavemem(&inmemory, &inmemorylength, combo, 16);
 	FILE*f=fopen("outsines.wav","wb");
 	fwrite(inmemory, 1, inmemorylength, f);
 	fclose(f);
 	
 	if (msg != OK) puts(msg);
-	audioparams_dispose( combo);
-	audioparams_dispose( w1);
-	audioparams_dispose( w2);
+	caudiodata_dispose( combo);
+	caudiodata_dispose( w1);
+	caudiodata_dispose( w2);
 	
 	free(inmemory);
 }

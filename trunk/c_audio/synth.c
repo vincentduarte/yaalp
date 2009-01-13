@@ -6,14 +6,14 @@ int synth_changeSquareState;
 double synth_rednoiseState;
 double synth_rednoise_factor;
 
-errormsg synth_periodicsynth(AudioParams**out,OscillatorFn fn,bool purelyPeriodic, double freq, double lengthSeconds, double amp)
+errormsg synth_periodicsynth(CAudioData**out,OscillatorFn fn,bool purelyPeriodic, double freq, double lengthSeconds, double amp)
 {
-	AudioParams* audio;
-	audio = *out = AudioParamsNew(); //use audio as an alias for the output, *out.
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
 
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
-	errormsg msg = audioparams_allocate(audio, length, 1, SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
 	if (msg!=OK) return msg;
 		
 	double timeScale = 2.0 * PI * freq / (double)SampleRate;
@@ -44,7 +44,7 @@ errormsg synth_periodicsynth(AudioParams**out,OscillatorFn fn,bool purelyPeriodi
 double synth_frequencyFromMidiNote(int n) {	return 8.1758 * pow(2.0, (n / 12.0)); }
 
 ////////////////////////////////////////////////////////////
-errormsg synth_sin(AudioParams**out, double freq, double length, double amp)
+errormsg synth_sin(CAudioData**out, double freq, double length, double amp)
 {
 	return synth_periodicsynth(out, (OscillatorFn)sin, 1,freq, length, amp);
 }
@@ -53,7 +53,7 @@ double synth_square_impl(double v)
 {
 	return (fmod(v , (2*PI)) > PI ? 1.0 : -1.0);
 }
-errormsg synth_square(AudioParams**out, double freq, double length, double amp)
+errormsg synth_square(CAudioData**out, double freq, double length, double amp)
 {
 	return synth_periodicsynth(out, (OscillatorFn)synth_square_impl, 1,freq, length, amp);
 }
@@ -63,7 +63,7 @@ double synth_sawtooth_impl(double x)
 	x = fmod(x , (PI * 2));
 	return ((x / (PI * 2)) * 2) - 1;
 }
-errormsg synth_sawtooth(AudioParams**out, double freq, double length, double amp)
+errormsg synth_sawtooth(CAudioData**out, double freq, double length, double amp)
 {
 	return synth_periodicsynth(out, (OscillatorFn)synth_sawtooth_impl, 1,freq, length, amp);
 }
@@ -77,7 +77,7 @@ double synth_triangle_impl(double x)
 	else
 		return 1 - (x) * 4;
 }
-errormsg synth_triangle(AudioParams**out, double freq, double length, double amp)
+errormsg synth_triangle(CAudioData**out, double freq, double length, double amp)
 {
 	return synth_periodicsynth(out, (OscillatorFn)synth_triangle_impl, 1,freq, length, amp);
 }
@@ -91,7 +91,7 @@ double synth_circle_impl(double x)
 	else
 		return -1 * sqrt(1 - pow((((x) - halfperiod) / qtrperiod - 1), 2.0));
 }
-errormsg synth_circle(AudioParams**out, double freq, double length, double amp)
+errormsg synth_circle(CAudioData**out, double freq, double length, double amp)
 {
 	return synth_periodicsynth(out, (OscillatorFn)synth_circle_impl, 1,freq, length, amp);
 }
@@ -114,7 +114,7 @@ double synth_square_change_impl(double x)
 		return 1 - (x) * 4;
 	*/
 }
-errormsg synth_square_change(AudioParams**out, double freq, double length, double amp)
+errormsg synth_square_change(CAudioData**out, double freq, double length, double amp)
 {
 	synth_changeSquareState = 0;
 	// note: pass 0 because it isn't purely periodic.
@@ -129,7 +129,7 @@ double synth_whitenoise_impl(double x)
 	double r = NEXTDOUBLE(); 
 	return r*2.0 - 1.0;
 }
-errormsg synth_whitenoise(AudioParams**out, double length, double amp)
+errormsg synth_whitenoise(CAudioData**out, double length, double amp)
 {
 	STARTRAND();
 	// note: pass 0 because it isn't purely periodic.
@@ -145,7 +145,7 @@ double synth_rednoise_impl(double x)
 	
 	return synth_rednoiseState;
 }
-errormsg synth_rednoise(AudioParams**out, double length, double amp)
+errormsg synth_rednoise(CAudioData**out, double length, double amp)
 {
 	STARTRAND();
 	synth_rednoiseState = 0;
@@ -171,7 +171,7 @@ double synth_pinknoise_impl(double x)
 	return (synth_pinknoise_randreg[0] + synth_pinknoise_randreg[1] + synth_pinknoise_randreg[2]) * 30.0;
 	
 }
-errormsg synth_pinknoise(AudioParams**out, double length, double amp)
+errormsg synth_pinknoise(CAudioData**out, double length, double amp)
 {
 	STARTRAND();
 	// Initialize the randomized sources state
