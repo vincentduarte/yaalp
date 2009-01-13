@@ -1,6 +1,13 @@
 // Wave Persistence
+
+// Commonly used
+//errormsg caudiodata_loadwave(CAudioData** waveout, char* filename);
+//errormsg caudiodata_savewave(CAudioData* this, char* filename, int bitsPerSample /*=8 or 16*/);
+//errormsg caudiodata_savewavemem(char** out, uint*outLengthInBytes, CAudioData* this, int bitsPerSample /*=8 or 16*/);
+
 // The goal is to use the same code when writing to memory and writing to disk.
 // So, we have to use a type of polymorphism, which in C is not very pretty.
+
 
 typedef struct
 {
@@ -32,6 +39,9 @@ int gfputc ( int character, Simplestream * stream )
 		return 1;
 	}
 }
+
+
+
 
 errormsg caudiodata_savewavestream(CAudioData* this, Simplestream * f, int bitsPerSample /*=8 or 16*/)
 {
@@ -135,7 +145,6 @@ errormsg caudiodata_savewavestream(CAudioData* this, Simplestream * f, int bitsP
 	return OK;
 }
 
-
 errormsg caudiodata_savewave(CAudioData* this, char* filename, int bitsPerSample /*=8 or 16*/)
 {
 	FILE * f = fopen(filename,"wb");
@@ -148,7 +157,6 @@ errormsg caudiodata_savewave(CAudioData* this, char* filename, int bitsPerSample
 	fclose(f);
 	return msg;
 }
-
 //user is responsible for freeing!
 errormsg caudiodata_savewavemem(char** out, uint*outLengthInBytes, CAudioData* this, int bitsPerSample /*=8 or 16*/)
 {
@@ -169,9 +177,6 @@ errormsg caudiodata_savewavemem(char** out, uint*outLengthInBytes, CAudioData* t
 }
 
 
-
-
-
 bool strfromfile(FILE*f, char c1, char c2, char c3, char c4)
 {
 	// we must read 4 characters regardless.
@@ -185,7 +190,7 @@ bool strfromfile(FILE*f, char c1, char c2, char c3, char c4)
 //Caller is responsible for freeing object by calling dispose.
 #define READUINT(varname) fread(&varname, sizeof(uint),1,f)
 #define READUSHORT(varname) fread(&varname, sizeof(ushort),1,f)
-errormsg caudiodata_loadwave(CAudioData**out, FILE * f)
+errormsg caudiodata_loadwavestream(CAudioData**out, FILE * f)
 {
 	CAudioData* audio;
 	audio = *out = CAudioDataNew(); //we'll use audio as an alias for the output, *out.
@@ -294,3 +299,13 @@ errormsg caudiodata_loadwave(CAudioData**out, FILE * f)
 		
 	return OK;
 }
+
+errormsg caudiodata_loadwave(CAudioData** waveout, char* filename)
+{
+	FILE * f = fopen(filename,"rb");
+	if (!f) return "Could not open file for reading.";
+	errormsg msg = caudiodata_loadwavestream(waveout,f);
+	fclose(f);
+	return msg;
+}
+
