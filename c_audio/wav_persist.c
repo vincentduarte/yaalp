@@ -1,4 +1,7 @@
-// wanted the same code for saving to memory, and saving to disk
+// Wave Persistence
+// The goal is to use the same code when writing to memory and writing to disk.
+// So, we have to use a type of polymorphism, which in C is not very pretty.
+
 typedef struct
 {
 	bool isFile;
@@ -171,11 +174,15 @@ errormsg audioparams_savewavemem(char** out, uint*outLengthInBytes, AudioParams*
 
 bool strfromfile(FILE*f, char c1, char c2, char c3, char c4)
 {
-	// note use & and not &&, because we want all of them to be executed. Don't want quick evaluation.
-	return (fgetc(f)==c1 & fgetc(f)==c2 & fgetc(f)==c3 &  fgetc(f)==c4);
+	// we must read 4 characters regardless.
+	bool b1 = (fgetc(f)==c1);
+	bool b2 = (fgetc(f)==c2);
+	bool b3 = (fgetc(f)==c3);
+	bool b4 = (fgetc(f)==c4);
+	return (b1 && b2 && b3 && b4);
 }
 
-//No matter what happens here, you'll have to free the resulting object! Caller is responsible! Call Dispose!
+//Caller is responsible for freeing object by calling dispose.
 #define READUINT(varname) fread(&varname, sizeof(uint),1,f)
 #define READUSHORT(varname) fread(&varname, sizeof(ushort),1,f)
 errormsg audioparams_loadwave(AudioParams**out, FILE * f)
