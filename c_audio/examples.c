@@ -255,9 +255,15 @@ void testAudacityPhaser()
 	char inname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\longinput.wav";
 	errormsg msg = caudiodata_loadwave(&w1, inname);
 	if (msg != OK) {puts(msg); return 0;}
-
-						//double freq, double fb, int depth, int stages, int drywet
-	msg =  effect_phaseraud(w1, .7, -60, 130, 4, 255);
+	
+	//Phaser:
+	//double freq, double fb, int depth, int stages, int drywet
+	//msg =  effect_phaseraud(w1, .7, -60, 130, 4, 255);
+	
+	//Wahwah: (use simon.wav)
+	//double freq, double depth, double freqofs, double res)
+	//msg =  effect_wahwahaud(w1, 1.5, 0.7, 0.1, 2.5);
+	
 	if (msg != OK) { puts(msg);  return 0;}
 	
 	char outname[] = "C:\\pydev\\yalp\\Subversion\\csaudio\\c_audio\\out2.wav"; 
