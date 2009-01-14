@@ -1,4 +1,6 @@
- // phaser from Audacity by Nasca Octavian Paul
+// strangely enough, these can be implemented as in-place effects
+
+// phaser from Audacity by Nasca Octavian Paul
 
 /*
  freq       - Phaser's LFO frequency
@@ -13,9 +15,9 @@
 #define fxphaseraudlfoskipsamples 20
 #define fxphaseraudlfoshape 4.0
 #define fxphaseraudMAX_STAGES 24
-void effect_phaseraud_impl(int length, double* dataout, double* data, double freq_scaled, double startphase, double fb, int depth, int stages, int drywet)
+void effect_phaseraud_impl(int length, double* data, double freq_scaled, double startphase, double fb, int depth, int stages, int drywet)
 {
-	if (data==NULL || dataout==NULL) return;
+	if (data==NULL) return;
 	// state variables	
 	unsigned long skipcount;
 	double old[fxphaseraudMAX_STAGES];
@@ -54,30 +56,26 @@ void effect_phaseraud_impl(int length, double* dataout, double* data, double fre
 		}
 		fbout = m;
 		out = (m * drywet + in * (255 - drywet)) / 255;
-
+		
 		// Prevent clipping
 		if (out < -1.0) out = -1.0;
 		else if (out > 1.0) out = 1.0;
-		dataout[i] = out;
+		data[i] = out;
 	}
 	
 }
-// Caller responsible for freeing! You must call caudiodata_dispose!
-errormsg effect_phaseraud(CAudioData**out, CAudioData* w1, double freq, double fb, int depth, int stages, int drywet)
+
+errormsg effect_phaseraud(CAudioData* this, double freq, double fb, int depth, int stages, int drywet)
 {
-	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
-	
 	if (stages > fxphaseraudMAX_STAGES) return "Too many stages"; if (stages % 2 != 0) return "Stages should be even.";
 	double startphaseleft = 0;
 	double startphaseright = startphaseleft+PI; //note that left and right channels should start pi out of phase
-	double freq_scaled = 2.0 * PI * freq / (double)w1->sampleRate;
+	double freq_scaled = 2.0 * PI * freq / (double)this->sampleRate;
 	
-	errormsg msg = caudiodata_allocate(audio, w1->length, NUMCHANNELS(w1), w1->sampleRate);
-	if (msg!=OK) return msg;
-	
-	effect_phaseraud_impl(audio->length,audio->data, w1->data,freq_scaled, startphaseleft, fb, depth, stages, drywet);
-	effect_phaseraud_impl(audio->length,audio->data_right,w1->data_right,freq_scaled, startphaseright, fb, depth, stages, drywet);
+	effect_phaseraud_impl(this->length,this->data,freq_scaled, startphaseleft, fb, depth, stages, drywet);
+	effect_phaseraud_impl(this->length,this->data_right,freq_scaled, startphaseright, fb, depth, stages, drywet);
 	return OK;
 }
 
+
+ 
