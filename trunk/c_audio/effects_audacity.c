@@ -57,8 +57,7 @@ void effect_phaseraud_impl(int length, double* data, double freq_scaled, double 
 		fbout = m;
 		out = (m * drywet + in * (255 - drywet)) / 255;
 		
-		// Prevent clipping
-		if (out < -1.0) out = -1.0;
+		if (out < -1.0) out = -1.0; // Prevent clipping
 		else if (out > 1.0) out = 1.0;
 		data[i] = out;
 	}
@@ -79,3 +78,78 @@ errormsg effect_phaseraud(CAudioData* this, double freq, double fb, int depth, i
 
 
  
+/* Parameters:
+   freq - LFO frequency 
+   startphase - LFO startphase in RADIANS - usefull for stereo WahWah
+   depth - Wah depth
+   freqofs - Wah frequency offset
+   res - Resonance
+
+   !!!!!!!!!!!!! IMPORTANT!!!!!!!!! :
+   depth and freqofs should be from 0(min) to 1(max) !
+   res should be greater than 0 !  */
+#define fxwahwahaudlfoskipsamples 30
+void effect_wahwahaud_impl(int length, double* data, double startphase, double freq_scaled, double depth, double freqofs, double res)
+{
+	if (data==NULL) return;
+	// state variables
+	double phase;
+	double lfoskip;
+	unsigned long skipcount;
+	double xn1, xn2, yn1, yn2;
+	double b0, b1, b2, a0, a1, a2;
+
+	// initialize variables
+	lfoskip = freq_scaled; //already converted from Hz
+	skipcount = 0;
+	xn1 = 0; xn2 = 0; yn1 = 0; yn2 = 0; b0 = 0;  b1 = 0; b2 = 0; a0 = 0; a1 = 0;  a2 = 0;
+	phase = startphase;
+
+	double frequency, omega, sn, cs, alpha;
+	double in, out;
+	int i;
+	for (i = 0; i < length; i++)
+	{
+		in = data[i];
+
+		if ((skipcount++) % fxwahwahaudlfoskipsamples == 0)
+		{
+			frequency = (1 + cos(skipcount * lfoskip + phase)) / 2;
+			frequency = frequency * depth * (1 - freqofs) + freqofs;
+			frequency = exp((frequency - 1) * 6);
+			omega = PI * frequency;
+			sn = sin(omega);
+			cs = cos(omega);
+			alpha = sn / (2 * res);
+			b0 = (1 - cs) / 2;
+			b1 = 1 - cs;
+			b2 = (1 - cs) / 2;
+			a0 = 1 + alpha;
+			a1 = -2 * cs;
+			a2 = 1 - alpha;
+		}
+		out = (b0 * in + b1 * xn1 + b2 * xn2 - a1 * yn1 - a2 * yn2) / a0;
+		xn2 = xn1;
+		xn1 = in;
+		yn2 = yn1;
+		yn1 = out;
+		
+		if (out < -1.0) out = -1.0; // Prevent clipping
+		else if (out > 1.0) out = 1.0;
+		data[i] = out;
+	}
+}
+  
+errormsg effect_wahwahaud(CAudioData* this, double freq, double depth, double freqofs, double res)
+{
+	double startphaseleft = 0;
+	double startphaseright = startphaseleft+PI; //note that left and right channels should start pi out of phase
+	double freq_scaled = 2.0 * PI * freq / (double)this->sampleRate;
+	
+	effect_wahwahaud_impl(this->length,this->data,startphaseleft, freq_scaled, depth, freqofs, res);
+	effect_wahwahaud_impl(this->length,this->data_right,startphaseright, freq_scaled, depth, freqofs, res);
+	return OK;
+}
+
+
+
