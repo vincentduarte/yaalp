@@ -16,11 +16,12 @@ namespace WaveAudioTests
 
             //CsWaveAudioTests.synthtests(pl);
             //CsWaveAudioTests.effectstest(pl);
+            CsWaveAudioTests.effectsaudacitytest(pl);
             //CsWaveAudioTests.iotests();
             //CsWaveAudioTests.propertytests();
             //CsWaveAudioTests.operations_test(pl);
             //CsWaveAudioTests.pitchdetect_test(pl);
-            CsWaveAudioTests.padsynthtests(pl);
+            //CsWaveAudioTests.padsynthtests(pl);
 
             Console.WriteLine("Done");
             Console.ReadKey();
@@ -169,6 +170,16 @@ namespace WaveAudioTests
             WaveAudio guitar1 = new PadSynthesisExtended(110.0, 0.7).CreateWaveAudio(4.0);
             WaveAudio guitar2 = new PadSynthesisExtended(110.0*1.5, 0.7).CreateWaveAudio(4.0);
             pl.Play(WaveAudio.Mix(guitar1,guitar2));
+        }
+
+        public static void effectsaudacitytest(AudioPlayer pl)
+        {
+            WaveAudio w = new WaveAudio(@"C:\pydev\yalp\Subversion\csaudio\c_audio\simon.wav");
+            WaveAudio w2 = Effects.Wahwah(w);
+            pl.Play(w2);
+
+            WaveAudio w3 = Effects.Phaser(w);
+            pl.Play(w3);
         }
     }
 }

@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Effects.cs" />
+    <Compile Include="EffectsAudacity.cs" />
     <Compile Include="Fourier.cs" />
     <Compile Include="PitchDetection.cs" />
     <Compile Include="Synthesis.cs" />
