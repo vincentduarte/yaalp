@@ -8,7 +8,7 @@ namespace CsWaveAudio
 {
     // Effects should always return a new WaveAudio without modifying the existing audio.
     // i.e., don't modify in place. Use .Clone() if necessary.
-    public static class Effects
+    public static partial class Effects
     {
 
         // Uses linear interpolation to find the 4.75th element of an array of doubles and so on.
