@@ -1,9 +1,9 @@
 // Wave Persistence
 
-// Commonly used
-//errormsg caudiodata_loadwave(CAudioData** waveout, char* filename);
-//errormsg caudiodata_savewave(CAudioData* this, char* filename, int bitsPerSample /*=8 or 16*/);
-//errormsg caudiodata_savewavemem(char** out, uint*outLengthInBytes, CAudioData* this, int bitsPerSample /*=8 or 16*/);
+
+#include "bcaudio.h"
+#include "wav_persist.h"
+
 
 // The goal is to use the same code when writing to memory and writing to disk.
 // So, we have to use a type of polymorphism, which in C is not very pretty.
@@ -77,7 +77,7 @@ errormsg caudiodata_savewavestream(CAudioData* this, Simplestream * f, int bitsP
 	gfwrite( &thedatasize, sizeof(uint), 1, f); // Data size
 	
 	//Question: can we assume that all samples are within -1 to 1? If so we could save time by avoiding cast to int.
-	int i,j;
+	int i;
 	if (bitsPerSample==8)
 	{
 		if (nChannels==1)
@@ -209,11 +209,11 @@ errormsg caudiodata_loadwavestream(CAudioData**out, FILE * f)
 	ushort nChannels; READUSHORT(nChannels);
 	uint nSampleRate; READUINT(nSampleRate);
 	uint byteRate; READUINT(byteRate);
-	ushort blockAlignTmp; READUSHORT(blockAlignTmp);
+	ushort blockAlignTmp; READUSHORT(blockAlignTmp); //unused
 	ushort nBitsPerSample; READUSHORT(nBitsPerSample);
 	
 	
-	int blockAlign = blockAlignTmp;
+	
 	if (nChannels != 1 && nChannels!=2) return "Unsupported number of channels. Currently only support 1 or 2.";
 	if (nBitsPerSample != 8 && nBitsPerSample!=16) return "Unsupported bitrate, Currently supports 8bit and 16 bit audio.";
 	
@@ -250,7 +250,7 @@ errormsg caudiodata_loadwavestream(CAudioData**out, FILE * f)
 	if (msg!=OK) return msg;
 	
 	// The next step is to convert data to doubles...this is probably lossless because the precision of doubles is pretty high
-	int i,j;
+	int i;
 	if (nBitsPerSample == 8)
 	{
 		if (nChannels == 1)
@@ -308,4 +308,11 @@ errormsg caudiodata_loadwave(CAudioData** waveout, char* filename)
 	fclose(f);
 	return msg;
 }
+
+void ftl_exit(char * msg)
+{
+	fputs(msg, stderr);
+	exit(1);
+}
+
 
