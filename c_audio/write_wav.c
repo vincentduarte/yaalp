@@ -135,8 +135,8 @@ void example1()
 int main()
 {
 	printf("Hello");
+
 	
-		
 	//~ char *tmp = malloc(128);
 	//~ gets(stdout);
 	//~ caudiodata_dispose( audio);
@@ -149,3 +149,5 @@ int main()
 //if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 //user might not know to dispose after error
 
+ // Nasca Octavian Paul- same guy who made ZynAddSubEffects
+//todo: normalize inputs to wah wah, phaser. Perhaps all parameters doubles from 0 to 1
