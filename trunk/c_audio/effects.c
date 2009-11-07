@@ -1,4 +1,7 @@
 
+#include "bcaudio.h"
+#include "effects.h"
+
 bool effect_checksame(CAudioData* w1, CAudioData* w2, bool lengthmatters)
 {
 	if (lengthmatters==1)

@@ -11,6 +11,9 @@
  fb         - Phaser FeedBack (0 - no feedback, 100 = 100% Feedback, -100 = -100% FeedBack)
 */
 
+#include "bcaudio.h"
+#include "effects_audacity.h"
+
 // How many samples are processed before compute the lfo value again
 #define fxphaseraudlfoskipsamples 20
 #define fxphaseraudlfoshape 4.0

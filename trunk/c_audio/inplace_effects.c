@@ -1,4 +1,7 @@
 
+#include "bcaudio.h"
+#include "inplace_effects.h"
+
 void inplaceeffect_volume_impl(double * data, int length, double factor)
 {
 	if (data==NULL) return;

@@ -1,6 +1,10 @@
 
+#include "bcaudio.h"
+#include "synth.h"
+
+
+
 typedef double(*OscillatorFn)(double);
-#define SampleRate 44100
 
 int synth_changeSquareState;
 double synth_rednoiseState;
@@ -121,9 +125,7 @@ errormsg synth_square_change(CAudioData**out, double freq, double length, double
 	return synth_periodicsynth(out, (OscillatorFn)synth_square_change_impl, 0, freq, length, amp);
 }
 
-//* returns random floating point value in the range [0,1) {including 0, not including 1}.
-#define STARTRAND() (srand ( time(NULL) ))
-#define NEXTDOUBLE() ((double)rand() / ((double)(RAND_MAX)+(double)(1)) )
+
 double synth_whitenoise_impl(double x)
 {
 	double r = NEXTDOUBLE(); 
@@ -181,4 +183,30 @@ errormsg synth_pinknoise(CAudioData**out, double length, double amp)
 	return synth_periodicsynth(out, (OscillatorFn)synth_pinknoise_impl, 0,1.000, length, amp);
 }
 
+errormsg synth_redglitch(CAudioData**out,double freq, double lengthSeconds, double amp, double chunkLength, double rednoisefactor)
+{
+	STARTRAND();
+	
+	CAudioData* audio;
+	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
+	int length = (int)(lengthSeconds * SampleRate);
+	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
+	if (msg!=OK) return msg;	
+	
+	CAudioData* tmp;
+	int nChunks = lengthSeconds/chunkLength;
+	int i; for (i=0; i<nChunks; i++)
+	{
+		synth_rednoiseState = 0;
+		synth_rednoise_factor = rednoisefactor;
+		synth_periodicsynth(&tmp, (OscillatorFn)synth_rednoise_impl, 1,freq, chunkLength, amp);
+		
+		int offset = (i * chunkLength * (audio->sampleRate));
+		memcpy(audio->data + offset, tmp->data, tmp->length*sizeof(double));
+		caudiodata_dispose(tmp);
+	}
+	
+	return OK;
+}
 
