@@ -193,7 +193,7 @@ bool strfromfile(FILE*f, char c1, char c2, char c3, char c4)
 errormsg caudiodata_loadwavestream(CAudioData**out, FILE * f)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //we'll use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //we'll use audio as an alias for the output, *out.
 	if (!strfromfile(f,'R','I','F','F')) return "No RIFF tag, probably invalid wav file.";
 	
 	uint length; READUINT(length); // (length of file in bytes) - 8

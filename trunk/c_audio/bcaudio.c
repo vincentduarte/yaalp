@@ -3,7 +3,7 @@
 #include "bcaudio.h"
 
 
-CAudioData* CAudioDataNew()
+CAudioData* caudiodata_new()
 {
 	// one must assign to ALL members.
 	CAudioData* ret = (CAudioData*) malloc(sizeof(CAudioData));
@@ -17,8 +17,9 @@ void caudiodata_dispose(CAudioData* audio)
 {
 	free(audio->data); //remember that freeing NULL is completely ok
 	free(audio->data_right);
+	audio->data = audio->data_right = NULL;
 	free(audio);
-	audio->data = audio->data_right = NULL; audio = NULL;
+	audio = NULL;
 }
 
 errormsg caudiodata_allocate(CAudioData* this, int nSamples, int nChannels, int nSampleRate)
@@ -39,11 +40,11 @@ errormsg caudiodata_allocate(CAudioData* this, int nSamples, int nChannels, int 
 	return OK;
 }
 
-// Caller responsible for freeing! You must call caudiodata_dispose!
+// Caller responsible for calling caudiodata_dispose on the result!
 errormsg caudiodata_clone(CAudioData** out, CAudioData* this)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //we'll use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //we'll use audio as an alias for the output, *out.
 	
 	errormsg msg = caudiodata_allocate(audio, this->length, NUMCHANNELS(this), this->sampleRate);
 	if (msg!=OK) return msg;
@@ -55,7 +56,7 @@ errormsg caudiodata_clone(CAudioData** out, CAudioData* this)
 	return OK;
 }
 
-double getLengthInSeconds(CAudioData* this)
+double caudiodata_getLengthInSecs(CAudioData* this)
 {
 	if (this->data==NULL) return 0;
 	return this->length / (double) this->sampleRate;
@@ -67,7 +68,7 @@ double getLengthInSeconds(CAudioData* this)
 //next: add debug system to catch mem leaks. limit malloc calls to one place
 //validate all parameters, before allocating.
 //possible memory leak in the synths?
-//audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+//audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 //if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 //user might not know to dispose after error
 

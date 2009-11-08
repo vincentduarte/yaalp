@@ -39,7 +39,7 @@ void effect_mix_impl(int length, double* out, double* d1,double* d2, double s1, 
 errormsg effect_mix(CAudioData**out, CAudioData* w1, CAudioData* w2, double s1, double s2)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (!effect_checksame(w1,w2,1)) return "Inputs must have same length, same sample rate and # of channels";
 
 	errormsg msg = caudiodata_allocate(audio, w1->length, NUMCHANNELS(w1), w1->sampleRate);
@@ -64,7 +64,7 @@ void effect_modulate_impl(int length, double* out, double* d1,double* d2, double
 errormsg effect_modulate(CAudioData**out, CAudioData* w1, CAudioData* w2, double a1, double a2)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (!effect_checksame(w1,w2,1)) return "Inputs must have same length, same sample rate and # of channels";
 
 	errormsg msg = caudiodata_allocate(audio, w1->length, NUMCHANNELS(w1), w1->sampleRate);
@@ -79,7 +79,7 @@ errormsg effect_modulate(CAudioData**out, CAudioData* w1, CAudioData* w2, double
 errormsg effect_append(CAudioData**out, CAudioData* w1, CAudioData* w2)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (!effect_checksame(w1,w2,0)) return "Inputs must have same sample rate and # of channels";
 
 	errormsg msg = caudiodata_allocate(audio, w1->length+w2->length, NUMCHANNELS(w1), w1->sampleRate);
@@ -110,7 +110,7 @@ void effect_scale_pitch_duration_impl(int newLength, double* out, int oldLength,
 errormsg effect_scale_pitch_duration(CAudioData**out, CAudioData* w1, double factor)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 
 	if (factor<=0) return "Invalid factor.";
 	int newLength = (int)(w1->length / factor); // find new length
@@ -139,7 +139,7 @@ void effect_vibrato_impl(int length, double* out, double* d1, double vibratoFreq
 errormsg effect_vibrato(CAudioData**out, CAudioData* w1, double freq, double width)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 
 	errormsg msg = caudiodata_allocate(audio, w1->length, NUMCHANNELS(w1), w1->sampleRate);
 	if (msg!=OK) return msg;

@@ -21,11 +21,11 @@ typedef struct
 
 
 // functions from bcaudio.c
-CAudioData* CAudioDataNew();
+CAudioData* caudiodata_new();
 void caudiodata_dispose(CAudioData* audio);
 errormsg caudiodata_allocate(CAudioData* this, int nSamples, int nChannels, int nSampleRate);
 errormsg caudiodata_clone(CAudioData** out, CAudioData* this);
-double getLengthInSeconds(CAudioData* this);
+double caudiodata_getLengthInSecs(CAudioData* this);
 
 //pseudo-random number generation
 //* returns random floating point value in the range [0,1) {including 0, not including 1}.

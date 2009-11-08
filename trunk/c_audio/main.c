@@ -4,7 +4,7 @@
 void example1()
 {
 	//create a sample sine wave.
-	CAudioData* audio =  CAudioDataNew();
+	CAudioData* audio =  caudiodata_new();
 	errormsg msg = caudiodata_allocate(audio, 44100*4, 1, 44100); // 4 seconds of audio, mono.
 	if (msg!=OK) puts(msg);
 	
@@ -23,7 +23,8 @@ void example1()
 int main()
 {
 	printf("Hello");
-
+	
+	example1();
 	
 	//~ char *tmp = malloc(128);
 	//~ gets(stdout);
