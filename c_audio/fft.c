@@ -165,7 +165,7 @@ void complexToAngle(double * outMag, double * outAngle, uint length, double * in
 }
 
 
-errormsg dumpToFrequencyAngles(CAudioData* this, const char* filename, uint blocksize) /* blocksize should be power of two*/
+errormsg dumpToFrequencyAngles(CAudioData* this, /*const*/ char* filename, uint blocksize) /* blocksize should be power of two*/
 {
 	if( !isPowerOfTwo(blocksize) )
 		return "Error: Length is not a power of 2.";
@@ -208,7 +208,7 @@ errormsg dumpToFrequencyAngles(CAudioData* this, const char* filename, uint bloc
 	return OK;
 }
 
-errormsg readFrequenciesToSamples(CAudioData** out, const char* filename)
+errormsg readFrequenciesToSamples(CAudioData** out, /*const*/ char* filename)
 {
 	FILE * file = fopen(filename, "rb");
 	if (!file) return "Error: Could not open file.";
