@@ -33,12 +33,12 @@ unsigned int reverseBits(unsigned int p_nIndex, unsigned int p_nBits)
 	return rev;
 }
 
-errormsg fft_double (unsigned int p_nSamples, double* p_lpRealIn,double* p_lpImagIn, double** pp_lpRealOut, double** pp_lpImagOut, bool p_bInverseTransform)
+errormsg fft_double (unsigned int p_nSamples, double* p_lpRealIn,double* p_lpImagIn, double* p_lpRealOut, double* p_lpImagOut, bool p_bInverseTransform)
 {
-	(*pp_lpRealOut) = malloc(sizeof(double) * p_nSamples);
-	(*pp_lpImagOut) = malloc(sizeof(double) * p_nSamples);
-	double * p_lpRealOut = *pp_lpRealOut;
-	double * p_lpImagOut = *pp_lpImagOut;
+	//~ (*pp_lpRealOut) = malloc(sizeof(double) * p_nSamples);
+	//~ (*pp_lpImagOut) = malloc(sizeof(double) * p_nSamples);
+	//~ double * p_lpRealOut = *pp_lpRealOut;
+	//~ double * p_lpImagOut = *pp_lpImagOut;
 
 	unsigned int NumBits;
 	unsigned int i, j, k, n;
@@ -126,62 +126,128 @@ errormsg fft_double (unsigned int p_nSamples, double* p_lpRealIn,double* p_lpIma
 }
 
 
-errormsg rawSamplesToFrequency(unsigned int length, double* samples, double** freqReal, double** freqImag)
+errormsg rawSamplesToFrequency_Preallocated(unsigned int length, double* samples, double* freqReal, double* freqImag)
 {
 	return fft_double(length,samples, NULL, freqReal, freqImag, FALSE);
 }
+errormsg rawFrequencyToSamples_Preallocated(double* samples, double* tempBuffer, unsigned int length, double* freqReal, double* freqImag)
+{
+	return fft_double(length, freqReal, freqImag, samples, tempBuffer, TRUE);
+}
+errormsg rawSamplesToFrequency(unsigned int length, double* samples, double** outfreqReal, double** outfreqImag)
+{
+	(*outfreqReal) = malloc(sizeof(double) * length);
+	(*outfreqImag) = malloc(sizeof(double) * length);
+	return rawSamplesToFrequency_Preallocated(length, samples, *outfreqReal, *outfreqImag);
+}
 errormsg rawFrequencyToSamples(double** samples, unsigned int length, double* freqReal, double* freqImag)
 {
-	double* tmpImage=NULL;
-	errormsg res = fft_double(length, freqReal, freqImag, samples, &tmpImage, TRUE);
-	free(tmpImage);
+	(*samples) = malloc(sizeof(double) * length);
+	double *tempBuffer = malloc(sizeof(double) * length);
+	errormsg res = rawFrequencyToSamples_Preallocated(*samples, tempBuffer,length, freqReal, freqImag);
+	free(tempBuffer);
 	return res;
 }
-void angleToComplex(double ** outReal, double ** outImag, uint length, double * inMag, double * inAngle)
+
+void angleToComplex(double * outReal, double * outImag, uint length, double * inMag, double * inAngle)
 {
-	double * outR = (*outReal) = malloc(sizeof(double)*length);
-	double * outI = (*outImag) = malloc(sizeof(double)*length);
 	uint i; 
-	for (i=0;i<length; i++) outR[i] = inMag[i] * cos(inAngle[i]);
-	for (i=0;i<length; i++) outI[i] = inMag[i] * sin(inAngle[i]);
+	for (i=0;i<length; i++) outReal[i] = inMag[i] * cos(inAngle[i]);
+	for (i=0;i<length; i++) outImag[i] = inMag[i] * sin(inAngle[i]);
 }
-void complexToAngle(double ** outMag, double ** outAngle, uint length, double * inReal, double * inImag)
+void complexToAngle(double * outMag, double * outAngle, uint length, double * inReal, double * inImag)
 {
-	double * outM = (*outMag) = malloc(sizeof(double)*length);
-	double * outA = (*outAngle) = malloc(sizeof(double)*length);
 	uint i; 
-	for (i=0;i<length; i++) outM[i] = sqrt(inReal[i]*inReal[i]+inImag[i]*inImag[i]);
-	for (i=0;i<length; i++) outA[i] = atan2(inImag[i], inReal[i]);
+	for (i=0;i<length; i++) outMag[i] = sqrt(inReal[i]*inReal[i]+inImag[i]*inImag[i]);
+	for (i=0;i<length; i++) outAngle[i] = atan2(inImag[i], inReal[i]);
 }
 
 
-//~ errormsg dumpToFrequencyAngles(CAudioData* this, const char* filename, uint blocksize) /* blocksize should be power of two*/
-//~ {
-	//~ if( !isPowerOfTwo(blocksize) )
-		//~ return "Error: Length is not a power of 2.";
-	//~ double *ptrsamples = this->data;
-	//~ int nblocks = this->length/blocksize;
-	//~ if (nblocks <= 0) 
-		//~ return "Error: Blocksize too large.";
+errormsg dumpToFrequencyAngles(CAudioData* this, const char* filename, uint blocksize) /* blocksize should be power of two*/
+{
+	if( !isPowerOfTwo(blocksize) )
+		return "Error: Length is not a power of 2.";
+	double *ptrsamples = this->data;
+	int nblocks = this->length/blocksize;
+	if (nblocks <= 0) 
+		return "Error: Blocksize too large.";
+	if (this->sampleRate !=SampleRate)
+		return "Error: Must have default sample rate: 44100";
 	
-	//~ FILE * file = fopen(filename, "wb");
-	//~ if (!file) return "Error: Could not open file.";
-	//~ uint the_uint;
-	//~ the_uint = 0xbe7fffff; fwrite(&the_uint, sizeof(uint), 1, file);
-	//~ the_uint = 0x0; fwrite(&the_uint, sizeof(uint), 1, file);
-	//~ the_uint = blocksize; fwrite(&the_uint, sizeof(uint), 1, file);
-	//~ the_uint = nblocks; fwrite(&the_uint, sizeof(uint), 1, file);
+	FILE * file = fopen(filename, "wb");
+	if (!file) return "Error: Could not open file.";
+	uint the_uint;
+	the_uint = 0xbe7fffff; fwrite(&the_uint, sizeof(uint), 1, file);
+	the_uint = 0x0; fwrite(&the_uint, sizeof(uint), 1, file);
+	the_uint = blocksize; fwrite(&the_uint, sizeof(uint), 1, file);
+	the_uint = nblocks; fwrite(&the_uint, sizeof(uint), 1, file);
 	
-	//~ double * real, * imag, *mag, *angle = NULL;
-	//~ int i; for (i=0; i<nblocks; i++)
-	//~ {
+	double * realBuffer = malloc(sizeof(double)*blocksize);
+	double * imagBuffer = malloc(sizeof(double)*blocksize);
+	double * magBuffer = malloc(sizeof(double)*blocksize);
+	double * angleBuffer = malloc(sizeof(double)*blocksize);
+
+	int i; for (i=0; i<nblocks; i++)
+	{
+		rawSamplesToFrequency_Preallocated(blocksize, ptrsamples, realBuffer, imagBuffer);
+		complexToAngle(magBuffer, angleBuffer,blocksize, realBuffer, imagBuffer);
+		fwrite(magBuffer, sizeof(double), blocksize, file);
+		fwrite(angleBuffer, sizeof(double), blocksize, file);
 		
-		//~ rawSamplesToFrequency(blocksize, ptrsamples, &real, &imag);
+		ptrsamples += blocksize;
+	}
+	fclose(file);
+	
+	free(realBuffer); free(imagBuffer); free(magBuffer); free(angleBuffer);
+	printf("size of file should be %d bytes.\n", sizeof(uint)*4+sizeof(double)*2*blocksize*nblocks);
+	printf("nblocks%d blocksize%d\n", nblocks, blocksize );
+	return OK;
+}
+
+errormsg readFrequenciesToSamples(CAudioData** out, const char* filename)
+{
+	FILE * file = fopen(filename, "rb");
+	if (!file) return "Error: Could not open file.";
+	printf("hiA");
+	
+	uint blocksize, nblocks;
+	
+	uint the_uint;
+	fread(&the_uint, sizeof(uint),1,file);
+	if (the_uint!=0xbe7fffff) return "Error: Wrong file type? Didn't see magic #.";
+	fread(&the_uint, sizeof(uint),1,file);
+	fread(&blocksize, sizeof(uint),1,file);
+	fread(&nblocks, sizeof(uint),1,file); 
+	
+	
+	CAudioData * audio = (*out) = caudiodata_new();
+	caudiodata_allocate(audio, nblocks*blocksize , 1, SampleRate);
+	
+	double * realBuffer = malloc(sizeof(double)*blocksize);
+	double * imagBuffer = malloc(sizeof(double)*blocksize);
+	double * magBuffer = malloc(sizeof(double)*blocksize);
+	double * angleBuffer = malloc(sizeof(double)*blocksize);
+	double * tempBuffer = malloc(sizeof(double)*blocksize);
+	
+
+	double *ptrdata = audio->data;
+	int i; for (i=0; i<nblocks; i++)
+	{		
+		//ptrdata =  audio->data+ i*blocksize;
+		fread(magBuffer, sizeof(double),blocksize,file);
+		fread(angleBuffer, sizeof(double),blocksize,file);
+		angleToComplex(realBuffer, imagBuffer,blocksize, magBuffer, angleBuffer);
 		
-		//~ ptrsamples += blocksize;
-	//~ }
-	//~ fwrite( ptr, size, count, stream->f);
-//~ }
+		rawFrequencyToSamples_Preallocated(ptrdata, tempBuffer, blocksize, realBuffer, imagBuffer);
+		ptrdata += blocksize;
+	}
+	free(realBuffer); free(imagBuffer); free(magBuffer); free(angleBuffer);free(tempBuffer);
+	fclose(file);
+	printf("nblocks%d blocksize%d\n", nblocks, blocksize );
+	return OK;
+}
+
+
 
 
 
