@@ -1,7 +1,8 @@
+
 caudiodata_void example1()
 {
 	//create a sample sine wave.
-	CAudioData* audio =  CAudioDataNew();
+	CAudioData* audio =  caudiodata_new();
 	errormsg msg = caudiodata_allocate(audio, 44100*4, 1, 44100); // 4 seconds of audio, mono.
 	if (msg!=OK) puts(msg);
 	
@@ -22,8 +23,8 @@ caudiodata_void example1()
 
 void example_mix()
 {
-	CAudioData* w1 =  CAudioDataNew();
-	CAudioData* w2 =  CAudioDataNew();
+	CAudioData* w1 =  caudiodata_new();
+	CAudioData* w2 =  caudiodata_new();
 	
 	synth_sin(&w1, 300, 4.0, 0.8); //sine wave, 300Hz
 	synth_sin(&w2, 430, 4.0, 0.8); //sine wave, 430Hz
@@ -83,7 +84,7 @@ void mixwithsine() // or modulate, or append, an easy change
 	if (msg != OK) puts(msg);
 	fclose(fin);
 	
-	synth_sin(&w2, 300, getLengthInSeconds(w1), 0.8); //sine wave, 300Hz
+	synth_sin(&w2, 300, caudiodata_getLengthInSecs(w1), 0.8); //sine wave, 300Hz
 	
 	msg =  effect_mix(&out, w1, w2, 0.5, 0.1); //effect_append(&out, w2, w1);
 	if (msg != OK) { puts(msg);  return 0;}
@@ -206,7 +207,7 @@ void testRedGlitchNess()
 	//~ synth_redglitch(&w2, 120.6, 20.0, 0.8, 0.09, 0.661);
 	
 	//Left channel is w1, right channel is w2
-	combo = CAudioDataNew();
+	combo = caudiodata_new();
 	combo->length = w1->length;
 	combo->sampleRate = w1->sampleRate;
 	combo->data = w1->data;
@@ -228,7 +229,7 @@ void testWriteToMemory()
 	synth_sin(&w2, 303, 2.0, 0.8);
 	
 	//Left channel is w1, right channel is w2
-	combo = CAudioDataNew();
+	combo = caudiodata_new();
 	combo->length = w1->length;
 	combo->sampleRate = w1->sampleRate;
 	combo->data = w1->data;

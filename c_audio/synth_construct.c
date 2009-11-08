@@ -8,7 +8,7 @@
 errormsg synth_electricorgan(CAudioData**out,double basefreq, double lengthSeconds, double amp)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (basefreq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
 	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
@@ -37,7 +37,7 @@ errormsg synth_electricorgan(CAudioData**out,double basefreq, double lengthSecon
 errormsg synth_sinesmooth(CAudioData**out,double freq, double lengthSeconds, double amp)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
 	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
@@ -58,7 +58,7 @@ errormsg synth_sinesmooth(CAudioData**out,double freq, double lengthSeconds, dou
 errormsg synth_sineorgan(CAudioData**out,double freq, double lengthSeconds, double amp)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
 	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);

@@ -13,7 +13,7 @@ double synth_rednoise_factor;
 errormsg synth_periodicsynth(CAudioData**out,OscillatorFn fn,bool purelyPeriodic, double freq, double lengthSeconds, double amp)
 {
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
@@ -188,7 +188,7 @@ errormsg synth_redglitch(CAudioData**out,double freq, double lengthSeconds, doub
 	STARTRAND();
 	
 	CAudioData* audio;
-	audio = *out = CAudioDataNew(); //use audio as an alias for the output, *out.
+	audio = *out = caudiodata_new(); //use audio as an alias for the output, *out.
 	if (lengthSeconds<0) return "Invalid length"; if (freq<=0) return "Invalid frequency";
 	int length = (int)(lengthSeconds * SampleRate);
 	errormsg msg = caudiodata_allocate(audio, length, 1, SampleRate);
