@@ -114,8 +114,10 @@ errormsg fft_double (unsigned int p_nSamples, double* p_lpRealIn,double* p_lpIma
 
 	if( p_bInverseTransform )
 	{
-		double denom = (double)p_nSamples;
-
+		double denom = ((double)p_nSamples)/2.0; 
+		//ADDED: before, when round-tripping, was too quiet by a factor of 2. 
+		//I compensate for that here. I don't know where the true error is.
+		
 		for ( i=0; i < p_nSamples; i++ )
 		{
 			p_lpRealOut[i] /= denom;
@@ -190,16 +192,18 @@ errormsg dumpToFrequencyAngles(CAudioData* this, const char* filename, uint bloc
 	int i; for (i=0; i<nblocks; i++)
 	{
 		rawSamplesToFrequency_Preallocated(blocksize, ptrsamples, realBuffer, imagBuffer);
-		complexToAngle(magBuffer, angleBuffer,blocksize, realBuffer, imagBuffer);
-		fwrite(magBuffer, sizeof(double), blocksize, file);
-		fwrite(angleBuffer, sizeof(double), blocksize, file);
+		
+		//OPTIMIZATION: we only care about half of the results, since the other half is redundant (because we passed in a real signal)
+		complexToAngle(magBuffer, angleBuffer,blocksize/2, realBuffer, imagBuffer);
+		fwrite(magBuffer, sizeof(double), blocksize/2, file); 
+		fwrite(angleBuffer, sizeof(double), blocksize/2, file);
 		
 		ptrsamples += blocksize;
 	}
 	fclose(file);
 	
 	free(realBuffer); free(imagBuffer); free(magBuffer); free(angleBuffer);
-	printf("size of file should be %d bytes.\n", sizeof(uint)*4+sizeof(double)*2*blocksize*nblocks);
+	printf("size of file should be %d bytes.\n", sizeof(uint)*4+sizeof(double)*2*blocksize*nblocks/2);
 	printf("nblocks%d blocksize%d\n", nblocks, blocksize );
 	return OK;
 }
@@ -228,15 +232,17 @@ errormsg readFrequenciesToSamples(CAudioData** out, const char* filename)
 	double * magBuffer = malloc(sizeof(double)*blocksize);
 	double * angleBuffer = malloc(sizeof(double)*blocksize);
 	double * tempBuffer = malloc(sizeof(double)*blocksize);
-	
 
 	double *ptrdata = audio->data;
-	int i; for (i=0; i<nblocks; i++)
+	int i,j; for (i=0; i<nblocks; i++)
 	{		
-		//ptrdata =  audio->data+ i*blocksize;
-		fread(magBuffer, sizeof(double),blocksize,file);
-		fread(angleBuffer, sizeof(double),blocksize,file);
-		angleToComplex(realBuffer, imagBuffer,blocksize, magBuffer, angleBuffer);
+		fread(magBuffer, sizeof(double),blocksize/2,file);
+		fread(angleBuffer, sizeof(double),blocksize/2,file);
+		angleToComplex(realBuffer, imagBuffer,blocksize/2, magBuffer, angleBuffer);
+		
+		//OPTIMIZATION: reconstruct redundant half of data. Because we disregard imaginary results, ok to fill with 0, rather than the mirrored results.
+		for(j=blocksize/2; j<blocksize;j++)
+			realBuffer[j] = imagBuffer[j] = 0.0;
 		
 		rawFrequencyToSamples_Preallocated(ptrdata, tempBuffer, blocksize, realBuffer, imagBuffer);
 		ptrdata += blocksize;
@@ -251,21 +257,12 @@ errormsg readFrequenciesToSamples(CAudioData** out, const char* filename)
 
 
 
-//freqcomplex_to_audio
-//freqangle_to_audio
-//audio_to_
-//do it in huge memory chunks. then less fragmentation, only one call to angleToComplex, and so on
-
 //optimization: we know neg frequencies will be mirrored. so why bother with them?
 //we could override looking up p_lpRealIn[i], to see if i>len(p_lpRealIn), and return mirror image.
 
-//////////////////////////////////////////////////////////////////////////////////////
-// return a frequency from the basefreq and num of samples
-//////////////////////////////////////////////////////////////////////////////////////
 
 double Index_to_frequency(unsigned int p_nBaseFreq, unsigned int p_nSamples, unsigned int p_nIndex)
 {
-
 	if(p_nIndex >= p_nSamples)
 	{
 		return 0.0;
@@ -278,7 +275,5 @@ double Index_to_frequency(unsigned int p_nBaseFreq, unsigned int p_nSamples, uns
 	{
 		return ( -(double)(p_nSamples-p_nIndex) / (double)p_nSamples * p_nBaseFreq );
 	}
-
-
 }
 
