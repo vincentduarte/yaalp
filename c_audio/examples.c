@@ -1,3 +1,23 @@
+int exfft()
+{
+	CAudioData * w1=NULL;  CAudioData  *w2=NULL;
+	char inname[] = "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\srt.wav";
+	errormsg msg = caudiodata_loadwave(&w1, inname);
+	if (msg != OK) {puts(msg); return 0;}
+	
+	msg=dumpToFrequencyAngles(w1,  "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput.dat", 2048);
+	if (msg != OK) {puts(msg); return 0;}
+	
+	msg=readFrequenciesToSamples(&w2, "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput.dat");
+	if (msg != OK) {puts(msg); return 0;}
+	
+	
+	msg = caudiodata_savewave(w2, "oout.wav", 16);
+	if (msg != OK) {puts(msg); return 0;}
+	
+	caudiodata_dispose( w1);
+	caudiodata_dispose( w2);
+}
 
 caudiodata_void example1()
 {

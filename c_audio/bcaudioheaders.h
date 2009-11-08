@@ -6,3 +6,4 @@
 #include "synth.h"
 #include "synth_construct.h"
 #include "wav_persist.h"
+#include "fft.h"
