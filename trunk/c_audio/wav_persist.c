@@ -309,10 +309,6 @@ errormsg caudiodata_loadwave(CAudioData** waveout, char* filename)
 	return msg;
 }
 
-void ftl_exit(char * msg)
-{
-	fputs(msg, stderr);
-	exit(1);
-}
+
 
 

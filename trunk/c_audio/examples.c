@@ -99,7 +99,7 @@ void mixwithsine() // or modulate, or append, an easy change
 }
 void appendandclone()
 {
-	CAudioData * wsine; CAudioData* wsinelouder;CAudioData* out;
+	CAudioData * wsine; CAudioData* wsinelouder = NULL;CAudioData* out;
 
 	synth_sin(&wsine, 300, 1.0, 0.3); //sine wave, 300Hz
 	
