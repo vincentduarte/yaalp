@@ -8,6 +8,13 @@
 #define SampleRate 44100
 
 typedef int bool;
+#ifndef TRUE
+#define TRUE (1)
+#endif
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
 typedef char* errormsg;
 #define OK 0
 
@@ -33,8 +40,13 @@ double caudiodata_getLengthInSecs(CAudioData* this);
 #define NEXTDOUBLE() ((double)rand() / ((double)(RAND_MAX)+(double)(1)) )
 
 void ftl_exit(char * msg);
+void ftl_fail_assert(const char * msg, const char*file, const char* fnname, int lineno );
 
 #define NUMCHANNELS(this) ((this->data_right == NULL)?1:2)
+
+#define assert_ptr(p) {if (!(p)) ftl_fail_assert("unexpected null ptr.",__FILE__,__func__,__LINE__);}
+#define assert_null(p) {if (!(p)) ftl_fail_assert("out-parameter should be set to null.",__FILE__,__func__,__LINE__);}
+#define assert_gtr0(p) {if (!(p)) ftl_fail_assert("bad parameter (negative number) passed to function.",__FILE__,__func__,__LINE__);}
 
 #include <limits.h>
 #define  SHORT_MAX  SHRT_MAX
