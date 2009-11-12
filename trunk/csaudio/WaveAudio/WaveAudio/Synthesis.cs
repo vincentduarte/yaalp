@@ -108,14 +108,17 @@ namespace CsWaveAudio
     // note: the weights on this may not be correct, at least the spectrum doesn't match with Audacity's brown noise
     public class RedNoise : AperiodicSimpleSynthesisBase
     {
+
         private Random rand;
         private double location, factor;
         // the default "factor" was changed from 2.0 to 0.1 after comparing with Audacity's brown noise.
-        public RedNoise(double amplitude) : this(amplitude, 0.1) { }
-        public RedNoise(double amplitude, double factor)
+        public RedNoise(double amplitude) : this(amplitude, 0.1, null) { }
+        public RedNoise(double amplitude, double factor) : this(amplitude, factor, null) { }
+        public RedNoise(double amplitude, double factor, Random rand)
             : base(amplitude)
         {
-            rand = new Random(); location = 0; this.factor = factor;
+            this.rand = (rand==null) ? new Random() : rand; 
+            location = 0; this.factor = factor;
         }
         protected override double WaveformFunction(int i)
         {
@@ -136,10 +139,11 @@ namespace CsWaveAudio
         private readonly double[] av = new double[] { 4.6306e-003,  5.9961e-003,  8.3586e-003};
         private readonly double[] pv = new double[] { 3.1878e-001, 7.7686e-001, 9.7785e-001 };
         private double[] randreg;
-        public PinkNoise(double amplitude)
+        public PinkNoise(double amplitude) : this(amplitude, null) { }
+        public PinkNoise(double amplitude, Random rand)
             : base(amplitude)
         {
-            rand = new Random();
+            this.rand = (rand==null) ? new Random() : rand; 
             
             // Initialize the randomized sources state
             randreg = new double[av.Length];
@@ -159,6 +163,97 @@ namespace CsWaveAudio
             return (randreg[0] + randreg[1] + randreg[2]) * 30.0;
         }
     }
+
+    public class RedNoiseGlitch : SynthesisBase
+    {
+        protected readonly double freq;
+        protected readonly double amplitude;
+        protected readonly int chunksbeforeswitch;
+        protected readonly double rednoisefactor;
+        
+        public RedNoiseGlitch(double freq, double amplitude) : this(freq, amplitude, 10, 0.261) {}
+        public RedNoiseGlitch(double freq, double amplitude, int chunksbeforeswitch, double rednoisefactor)
+        {
+            this.rednoisefactor = rednoisefactor;
+            this.chunksbeforeswitch = chunksbeforeswitch;
+            this.freq = freq;
+            this.amplitude = amplitude;
+        }
+        protected override double[] generate(int nSamples)
+        {
+            double[] outData = new double[nSamples];
+            Random rand = new Random(); //if a new random is created every time by Rednoise, it doesn't update fast enough!
+
+            int freqInSamples = (int)((1 / freq) * SynthesisBase.SampleRate);
+            int numChunks = nSamples / freqInSamples;
+            WaveAudio chunk = null;
+            for (int i = 0; i < numChunks; i++)
+            {
+                if (i % this.chunksbeforeswitch == 0)
+                {
+                    chunk = new RedNoise(amplitude, rednoisefactor, rand).CreateWaveAudio(1 / freq + 0.01);
+                }
+                Array.Copy(chunk.data[0], 0, outData, i * freqInSamples, freqInSamples);
+            }
+            //fill in the rest
+            if (numChunks * freqInSamples < nSamples)
+                Array.Copy(chunk.data[0], 0, outData, numChunks * freqInSamples, nSamples - numChunks * freqInSamples);
+            
+            return outData;
+        }
+    }
+
+
+    public class RedNoiseSmoothed : SynthesisBase
+    {
+        protected readonly double freq;
+        protected readonly double amplitude;
+        protected readonly int chunksbeforeswitch;
+        protected readonly double rednoisefactor;
+        protected readonly double smoothing; //from 0.0 to 1.0
+
+        public RedNoiseSmoothed(double freq, double amplitude) : this(freq, amplitude, 5, 0.2, 0.91) { }
+        public RedNoiseSmoothed(double freq, double amplitude, int chunksbeforeswitch, double rednoisefactor, double smoothing)
+        {
+            this.rednoisefactor = rednoisefactor;
+            this.chunksbeforeswitch = chunksbeforeswitch;
+            this.freq = freq;
+            this.amplitude = amplitude;
+            this.smoothing = smoothing;
+        }
+        protected override double[] generate(int nSamples)
+        {
+            double[] outData = new double[nSamples];
+            Random rand = new Random(); //if a new random is created every time, it doesn't update fast enough!
+
+            int freqInSamples = (int)((1 / freq) * SynthesisBase.SampleRate);
+            int numChunks = nSamples / freqInSamples;
+            WaveAudio chunk = null;
+            for (int i = 0; i < numChunks; i++)
+            {
+                if (i % this.chunksbeforeswitch == 0)
+                {
+                    if (chunk == null)
+                    {
+                        //seed with Sine wave
+                        chunk = new Sine(210, amplitude / 4).CreateWaveAudio(1 / freq + 0.01);
+                    }
+                    else
+                    {
+                        WaveAudio newchunk = new RedNoise(amplitude, rednoisefactor, rand).CreateWaveAudio(1 / freq + 0.01);
+                        chunk = WaveAudio.Mix(chunk, this.smoothing, newchunk, 1 - this.smoothing);
+                    }
+                }
+                Array.Copy(chunk.data[0], 0, outData, i * freqInSamples, freqInSamples);
+            }
+            //fill in the rest
+            if (numChunks * freqInSamples < nSamples)
+                Array.Copy(chunk.data[0], 0, outData, numChunks * freqInSamples, nSamples - numChunks * freqInSamples);
+
+            return outData;
+        }
+    }
+
 
 }
 

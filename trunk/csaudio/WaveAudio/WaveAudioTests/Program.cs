@@ -14,9 +14,9 @@ namespace WaveAudioTests
             // Uncomment the tests you wish to run.
 
 
-            //CsWaveAudioTests.synthtests(pl);
+            CsWaveAudioTests.synthtests(pl);
             //CsWaveAudioTests.effectstest(pl);
-            CsWaveAudioTests.effectsaudacitytest(pl);
+            //CsWaveAudioTests.effectsaudacitytest(pl);
             //CsWaveAudioTests.iotests();
             //CsWaveAudioTests.propertytests();
             //CsWaveAudioTests.operations_test(pl);
@@ -49,20 +49,29 @@ namespace WaveAudioTests
         public static void synthtests(AudioPlayer pl)
         {
             // also tests performance, because if there is a long pause, this is taking a bit to calculate.
-            pl.Play(new CsWaveAudio.Triangle(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.Sawtooth(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.Square(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.Sine(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.Triangle(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.Sawtooth(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.Square(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.Sine(300.0, 0.7).CreateWaveAudio(0.5));
 
-            pl.Play(new CsWaveAudio.SineWaveSum(new double[] { 300.0 }, new double[] { 1.0 }, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.SineWaveOrgan(300.0, 0.7).CreateWaveAudio(1.5));
-            pl.Play(new CsWaveAudio.SineWaveSmooth(300.0, 0.7).CreateWaveAudio(1.5));
-            pl.Play(new CsWaveAudio.ElectricOrgan(300.0, 0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.SquarePhaser(300.0, 0.7).CreateWaveAudio(3.5));
+            //pl.Play(new CsWaveAudio.SineWaveSum(new double[] { 300.0 }, new double[] { 1.0 }, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.SineWaveOrgan(300.0, 0.7).CreateWaveAudio(1.5));
+            //pl.Play(new CsWaveAudio.SineWaveSmooth(300.0, 0.7).CreateWaveAudio(1.5));
+            //pl.Play(new CsWaveAudio.ElectricOrgan(300.0, 0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.SquarePhaser(300.0, 0.7).CreateWaveAudio(3.5));
 
-            pl.Play(new CsWaveAudio.Splash(0.7).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.RedNoise(0.1).CreateWaveAudio(0.5));
-            pl.Play(new CsWaveAudio.WhiteNoise(0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.Splash(0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.RedNoise(0.1).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.WhiteNoise(0.7).CreateWaveAudio(0.5));
+            //pl.Play(new CsWaveAudio.RedNoiseGlitch(250, 0.5, 5, 0.3).CreateWaveAudio(19.5));
+
+            //note-appears to get quieter, but energy spectrum actually the same- that's just our ears hearing frequencies at different volumen
+
+            WaveAudio j1 = (new CsWaveAudio.RedNoiseSmoothed(100, 0.5 ).CreateWaveAudio(2.5));
+            WaveAudio j2 = (new CsWaveAudio.RedNoiseSmoothed(150, 0.5 ).CreateWaveAudio(2.5));
+            WaveAudio j3 = (new CsWaveAudio.RedNoiseSmoothed(250, 0.5).CreateWaveAudio(2.5));
+            pl.Play(WaveAudio.Mix(WaveAudio.Mix(j1, j3),j2));
+
         }
 
         public static void propertytests()
