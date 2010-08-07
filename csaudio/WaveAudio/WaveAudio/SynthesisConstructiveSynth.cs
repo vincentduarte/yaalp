@@ -7,7 +7,7 @@
 
 
 using System;
-using CsWaveAudio.SynthesisBaseClasses;
+using CsWaveAudio.SynthBases;
 
 namespace CsWaveAudio
 {
@@ -122,7 +122,7 @@ namespace CsWaveAudio
     /// <summary>
     /// Like sinewavesum, but it normalizes all of the samples afterwards.
     /// </summary>
-    public class SineWaveSumNormalizeAfterwards : CsWaveAudio.SynthesisBaseClasses.SineWaveSumBase
+    public class SineWaveSumNormalizeAfterwards : CsWaveAudio.SynthBases.SineWaveSumBase
     {
         public SineWaveSumNormalizeAfterwards(double[] frequencies, double[] weights, double amplitude)
         {

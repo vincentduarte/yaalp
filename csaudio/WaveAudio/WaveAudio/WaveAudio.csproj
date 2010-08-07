@@ -33,6 +33,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConstructionUtil.cs" />
     <Compile Include="Effects.cs" />
     <Compile Include="EffectsAudacity.cs" />
     <Compile Include="Fourier.cs" />

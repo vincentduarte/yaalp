@@ -11,7 +11,7 @@
  * */
 
 using System;
-using CsWaveAudio.SynthesisBaseClasses;
+using CsWaveAudio.SynthBases;
 
 namespace CsWaveAudio
 {
