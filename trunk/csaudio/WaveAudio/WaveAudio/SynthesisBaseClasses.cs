@@ -14,7 +14,7 @@ using System;
 
 namespace CsWaveAudio
 {
-    namespace SynthesisBaseClasses
+    namespace SynthBases
     {
         public abstract class SynthesisBase
         {

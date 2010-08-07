@@ -8,7 +8,7 @@ using System;
 
 namespace CsWaveAudio
 {
-    namespace SynthesisBaseClasses
+    namespace SynthBases
     {
         /// <summary>
         /// Instruments provide an array in frequency domain, which is then later turned into samples using IFFT.
@@ -57,7 +57,7 @@ namespace CsWaveAudio
                 return output;
             }
         }
-        internal class FourierSynthesisReferenceImplementation : SynthesisBaseClasses.FourierSynthesisBase
+        internal class FourierSynthesisReferenceImplementation : SynthBases.FourierSynthesisBase
         {
             private double[] freqs;
             public FourierSynthesisReferenceImplementation(double amplitude): base(amplitude)
@@ -148,7 +148,7 @@ namespace CsWaveAudio
     /// <summary>
     /// Reference implementation of PadSynthesis, sounds fine
     /// </summary>
-    public class PadSynthesis : SynthesisBaseClasses.PadSynthesisBase
+    public class PadSynthesis : SynthBases.PadSynthesisBase
     {
         public PadSynthesis(double frequency, double amplitude)
             : base(frequency, amplitude)
@@ -166,7 +166,7 @@ namespace CsWaveAudio
         }
     }
 
-    public class PadSynthesisEnsemble : SynthesisBaseClasses.PadSynthesisBase
+    public class PadSynthesisEnsemble : SynthBases.PadSynthesisBase
     {
         protected readonly double baseBandwidth;
         public PadSynthesisEnsemble(double frequency, double amplitude) : this(frequency, amplitude, 40.0) { }
@@ -195,7 +195,7 @@ namespace CsWaveAudio
     /// <summary>
     /// Uses formants to approximate singing, although if the formants are scaled it can sound like strings.
     /// </summary>
-    public class PadSynthesisChoir : SynthesisBaseClasses.PadSynthesisBase
+    public class PadSynthesisChoir : SynthBases.PadSynthesisBase
     {
         protected double fScaleFormants;
         public PadSynthesisChoir(double frequency, double amplitude, double fScaleFormants)
@@ -234,7 +234,7 @@ namespace CsWaveAudio
     /// <summary>
     /// Overrides some methods in PadSynthesis for cool results. By default sounds like an electric guitar.
     /// </summary>
-    public class PadSynthesisExtended : SynthesisBaseClasses.PadSynthesisBase
+    public class PadSynthesisExtended : SynthBases.PadSynthesisBase
     {
         protected readonly double fMetallic; //If non-zero, gives a metallic non-organic quality
         protected readonly int nPower; //Harmonics drop off on the order of 1/n^power
