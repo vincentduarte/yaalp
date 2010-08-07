@@ -5,14 +5,13 @@ int exfft()
 	errormsg msg = caudiodata_loadwave(&w1, inname);
 	if (msg != OK) {puts(msg); return 0;}
 	
-	msg=dumpToFrequencyAngles(w1,  "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput.dat", 2048);
+	msg=dumpToFrequencyAngles(w1,  "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput_opt.dat", 2048);
 	if (msg != OK) {puts(msg); return 0;}
 	
-	msg=readFrequenciesToSamples(&w2, "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput.dat");
+	msg=readFrequenciesToSamples(&w2, "C:\\pydev\\yalp\\Subversion\\c_audio\\media\\longinput_opt.dat");
 	if (msg != OK) {puts(msg); return 0;}
 	
-	
-	msg = caudiodata_savewave(w2, "oout.wav", 16);
+	msg = caudiodata_savewave(w2, "oout_opt.wav", 16);
 	if (msg != OK) {puts(msg); return 0;}
 	
 	caudiodata_dispose( w1);

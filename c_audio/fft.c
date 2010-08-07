@@ -167,6 +167,12 @@ void complexToAngle(double * outMag, double * outAngle, uint length, double * in
 
 errormsg dumpToFrequencyAngles(CAudioData* this, /*const*/ char* filename, uint blocksize) /* blocksize should be power of two*/
 {
+	if (sizeof(uint)!=4||sizeof(double)!=8) //don't currently worry about endianness
+	{
+		fputs( "uints should be 32bit, doubles should be 64bit", stderr);
+		exit(1);
+	}
+	
 	if( !isPowerOfTwo(blocksize) )
 		return "Error: Length is not a power of 2.";
 	double *ptrsamples = this->data;
@@ -222,6 +228,7 @@ errormsg readFrequenciesToSamples(CAudioData** out, /*const*/ char* filename)
 	fread(&the_uint, sizeof(uint),1,file);
 	fread(&blocksize, sizeof(uint),1,file);
 	fread(&nblocks, sizeof(uint),1,file); 
+	
 	
 	
 	CAudioData * audio = (*out) = caudiodata_new();
